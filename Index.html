@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AURIS DPR Analyzer Pro Ver67 — Intelligent DPR Audit</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%230A1F44'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-family='Playfair Display, Georgia, serif' font-size='38' font-weight='800' fill='%23C9A961'%3EA%3C/text%3E%3C/svg%3E">
+  <title>DPR Analyzer Pro Ver67 - Border Roads Organisation</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%231a1a2e'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-family='Playfair Display, Georgia, serif' font-size='34' font-weight='800' fill='%230D9488'%3ED%3C/text%3E%3C/svg%3E">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
   <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -12,14 +12,14 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Outfit',sans-serif;background:#F8F5EE;min-height:100vh}
+    body{font-family:'Outfit',sans-serif;background:#F5F7FA;min-height:100vh}
     @keyframes fadeIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
     @keyframes dotGlow{0%,100%{box-shadow:0 0 4px rgba(34,197,94,0.4)}50%{box-shadow:0 0 12px rgba(34,197,94,0.8)}}
     @keyframes pcSpin{to{transform:rotate(360deg)}}
     .pc-spin{animation:pcSpin .8s linear infinite}
-    ::selection{background:#C9A961;color:#fff}
-    input:focus,textarea:focus{border-color:#C9A961!important;box-shadow:0 0 0 3px rgba(201,169,97,.1)!important}
+    ::selection{background:#0D9488;color:#fff}
+    input:focus,textarea:focus{border-color:#0D9488!important;box-shadow:0 0 0 3px rgba(13,148,136,.1)!important}
     button{font-family:'Outfit',sans-serif}
     ::-webkit-scrollbar{width:6px}
     ::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
@@ -37,10 +37,9 @@
     var useRef = React.useRef;
 
     /* ============ CONFIGURATION ============ */
-    var AURIS_TAGLINE = "Intelligent DPR Audit. IRC & MoRTH Certified Logic.";
     var MAX_CHARS_PER_FILE = 150000;
     var ACCEPT_STRING = ".pdf,.doc,.docx,.txt,.xlsx,.xls,.csv,.md";
-    var SITE_PASSWORD = "AURIS@DPR2026";
+    var SITE_PASSWORD = "BRO@DPR2026";
 
     /* Analysis progress messages - NO mention of any AI/backend */
     var PROGRESS_MSGS = [
@@ -73,7 +72,7 @@
       Cost:{emoji:"\u{1F4B0}",color:"#D97706"},Survey:{emoji:"\u{1F4CF}",color:"#059669"},
       Structural:{emoji:"\u{1F3D7}\uFE0F",color:"#9333EA"},Environmental:{emoji:"\u{1F33F}",color:"#16A34A"},
       Land:{emoji:"\u{1F4CD}",color:"#EA580C"},Utilities:{emoji:"\u26A1",color:"#CA8A04"},
-      Schedule:{emoji:"\u{1F4C5}",color:"#4F46E5"},Quality:{emoji:"\u2705",color:"#C9A961"},
+      Schedule:{emoji:"\u{1F4C5}",color:"#4F46E5"},Quality:{emoji:"\u2705",color:"#0D9488"},
       Documentation:{emoji:"\u{1F4C4}",color:"#64748B"}
     };
     var RISK_CONFIG = {
@@ -83,8 +82,7 @@
       Severe:{color:"#7F1D1D",bg:"#FEE2E2",border:"#FCA5A5"}
     };
     /* Ver67: IRC reference MD files that must load before analysis.
-       Points at the V67 main branch on GitHub. Once the AURIS_DPR_v67 repo
-       is merged to main, raw.githubusercontent will serve these files. */
+       Served from the repo's guidelines/ folder on main. */
     var GITHUB_BASE_URL="https://raw.githubusercontent.com/ashishbhardwajcwe-cell/AURIS_DPR_v67/main/guidelines/";
     var IRC_REF_FILES=[
       {file:"IRC_37_2018_Extracted.md",            label:"IRC:37",     version:"2018"},
@@ -94,6 +92,7 @@
       {file:"IRC_SP19_DPR_Analyzer_Extraction.md", label:"IRC:SP:19",  version:"—"},
       {file:"IRC_SP42_2014_DPR_Analyzer_Extraction.md",label:"IRC:SP:42",version:"2014"},
       {file:"IRC_SP48_2023_DPR_Analyzer_Extraction.md",label:"IRC:SP:48",version:"2023"},
+      {file:"IRC_SP55_2014_DPR_Analyzer_Extraction.md",label:"IRC:SP:55",version:"2014"},
       {file:"MoRTH_DPR_Reference_Extract.md",      label:"MoRTH 5th Revision", version:"5th Rev"}
     ];
 
@@ -109,7 +108,7 @@
       {code:"IRC:SP:13",title:"Guidelines for Design of Small Bridges & Culverts",category:"Bridge",hasRef:true},
       {code:"MoRTH 5th Rev",title:"Specifications for Road & Bridge Works",category:"General",hasRef:true},
       {code:"IRC:SP:42",title:"Road Drainage Guidelines",category:"Drainage",hasRef:true},
-      {code:"IRC:SP:55",title:"Road Safety Audit Guidelines",category:"Safety",hasRef:false},
+      {code:"IRC:SP:55",title:"Traffic Management in Work Zones (2014)",category:"Safety",hasRef:true},
       {code:"BR Regulations",title:"Building & Road Regulations",category:"General",hasRef:false},
       {code:"IS:1893",title:"Criteria for Earthquake Resistant Design",category:"Design",hasRef:false}
     ];
@@ -182,22 +181,6 @@
     }
     function esc(s){return(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
 
-    /* ============ AURIS BRAND MARK ============ */
-    /* Text wordmark used wherever the brand identity is shown (password gate,
-       app header, PDF/Word/Print report header). Replace with the actual AURIS
-       logo by swapping out for an <img src='assets/logo.png'/> at the same sizes. */
-    function AurisMark(props){
-      var size=props.size||50;
-      var onDark=!!props.onDark;
-      var fg=onDark?"#C9A961":"#0A1F44";
-      var padX=Math.round(size*0.34);
-      return(
-        <div style={{display:"inline-flex",alignItems:"center",justifyContent:"center",height:size,padding:"0 "+padX+"px",borderRadius:"8px",border:"1.5px solid "+fg,fontFamily:"'Playfair Display',serif",fontWeight:800,fontSize:Math.round(size*0.42),letterSpacing:"0.3em",color:fg,lineHeight:1,flexShrink:0,boxSizing:"border-box",background:onDark?"transparent":"#FFFFFF"}}>
-          <span style={{paddingLeft:"0.3em"}}>AURIS</span>
-        </div>
-      );
-    }
-
     /* ============ PASSWORD GATE ============ */
     function PasswordGate(props){
       var ps=useState("");var pw=ps[0];var setPw=ps[1];
@@ -205,18 +188,17 @@
       function check(){if(pw===SITE_PASSWORD){setSession();props.onPass()}else{setErr("Incorrect password. Access denied.")}}
       function onKey(e){if(e.key==="Enter")check()}
       return(
-        <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#0A1F44 0%,#142B5C 50%,#1E3A6E 100%)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%)",display:"flex",alignItems:"center",justifyContent:"center"}}>
           <div style={{backgroundColor:"#fff",borderRadius:20,padding:"40px 36px",maxWidth:420,width:"90%",boxShadow:"0 20px 60px rgba(0,0,0,0.3)",textAlign:"center"}}>
-            <div style={{display:"flex",justifyContent:"center",marginBottom:16}}><AurisMark size={64}/></div>
-            <h1 style={{margin:"0 0 4px",fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:800,color:"#0A1F44"}}>AURIS DPR Analyzer Pro <span style={{fontSize:13,color:"#C9A961",fontWeight:700}}>Ver67</span></h1>
-            <p style={{margin:"0 0 4px",fontSize:12,color:"#A88B47",fontWeight:600,letterSpacing:".3px"}}>{AURIS_TAGLINE}</p>
+            <h1 style={{margin:"0 0 4px",fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:800,color:"#1a1a2e"}}>DPR Analyzer Pro <span style={{fontSize:13,color:"#0D9488",fontWeight:700}}>Ver67</span></h1>
+            <p style={{margin:"0 0 4px",fontSize:12,color:"#64748B"}}>Border Roads Organisation</p>
             <p style={{margin:"0 0 24px",fontSize:11,color:"#94A3B8"}}>Developed by Col Ashish Bhardwaj</p>
             <div style={{backgroundColor:"#FFF7ED",border:"1px solid #FED7AA",borderRadius:10,padding:"12px 16px",marginBottom:20,textAlign:"left"}}>
               <p style={{margin:0,fontSize:12,color:"#9A3412",lineHeight:1.5}}>{"\u{1F512} This application is password protected. Authorized personnel only."}</p>
             </div>
             <input type="password" placeholder="Enter access password" value={pw} onChange={function(e){setPw(e.target.value);setErr("")}} onKeyDown={onKey}
               style={{width:"100%",padding:"14px 18px",borderRadius:12,border:"2px solid #E2E8F0",fontSize:15,outline:"none",textAlign:"center",letterSpacing:2,boxSizing:"border-box",marginBottom:12}}/>
-            <button onClick={check} style={{width:"100%",padding:14,borderRadius:12,border:"none",background:"linear-gradient(135deg,#C9A961,#A88B47)",color:"#fff",fontSize:16,fontWeight:700,cursor:"pointer"}}>{"Unlock \u{1F513}"}</button>
+            <button onClick={check} style={{width:"100%",padding:14,borderRadius:12,border:"none",background:"linear-gradient(135deg,#0D9488,#0F766E)",color:"#fff",fontSize:16,fontWeight:700,cursor:"pointer"}}>{"Unlock \u{1F513}"}</button>
             {err&&<p style={{margin:"12px 0 0",fontSize:13,color:"#DC2626",fontWeight:600}}>{err}</p>}
           </div>
         </div>
@@ -224,7 +206,7 @@
     }
 
     /* ============ SHARED COMPONENTS ============ */
-    function DevCredit(){return React.createElement("div",{className:"dev-credit",style:{marginTop:"12px",borderTop:"1px solid #E2E8F0",paddingTop:"10px"}},"Developed by Col Ashish Bhardwaj  ·  AURIS DPR Analyzer Pro")}
+    function DevCredit(){return React.createElement("div",{className:"dev-credit",style:{marginTop:"12px",borderTop:"1px solid #E2E8F0",paddingTop:"10px"}},"Developed by Col Ashish Bhardwaj | Border Roads Organisation")}
 
     /* Ver67: Guideline-load status banner */
     function GuidelineLoadStatus(props){
@@ -269,8 +251,8 @@
           {props.steps.map(function(step,i){
             return(<div key={i} style={{display:"flex",alignItems:"center"}}>
               <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"6px"}}>
-                <div style={{width:"36px",height:"36px",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"14px",fontWeight:700,backgroundColor:i<props.currentStep?"#10B981":i===props.currentStep?"#0A1F44":"#E2E8F0",color:i<=props.currentStep?"#fff":"#94A3B8",boxShadow:i===props.currentStep?"0 0 0 4px rgba(10,31,68,0.15)":"none"}}>{i<props.currentStep?"\u2713":step.emoji}</div>
-                <span style={{fontSize:"11px",fontWeight:i===props.currentStep?700:500,color:i<=props.currentStep?"#0A1F44":"#94A3B8",textAlign:"center",maxWidth:"70px"}}>{step.label}</span>
+                <div style={{width:"36px",height:"36px",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"14px",fontWeight:700,backgroundColor:i<props.currentStep?"#10B981":i===props.currentStep?"#1a1a2e":"#E2E8F0",color:i<=props.currentStep?"#fff":"#94A3B8",boxShadow:i===props.currentStep?"0 0 0 4px rgba(26,26,46,0.15)":"none"}}>{i<props.currentStep?"\u2713":step.emoji}</div>
+                <span style={{fontSize:"11px",fontWeight:i===props.currentStep?700:500,color:i<=props.currentStep?"#1a1a2e":"#94A3B8",textAlign:"center",maxWidth:"70px"}}>{step.label}</span>
               </div>
               {i<props.steps.length-1&&<div style={{width:"40px",height:"2px",margin:"0 4px",backgroundColor:i<props.currentStep?"#10B981":"#E2E8F0",marginBottom:"22px"}}/>}
             </div>);
@@ -289,14 +271,14 @@
         <div style={{marginBottom:"16px"}}>
           <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"8px"}}>
             <span style={{fontSize:"22px"}}>{props.icon}</span>
-            <div style={{flex:1}}><h3 style={{margin:0,fontSize:"16px",fontWeight:700,color:"#0A1F44"}}>{props.label}</h3><p style={{margin:0,fontSize:"13px",color:"#64748B"}}>{props.description}</p></div>
+            <div style={{flex:1}}><h3 style={{margin:0,fontSize:"16px",fontWeight:700,color:"#1a1a2e"}}>{props.label}</h3><p style={{margin:0,fontSize:"13px",color:"#64748B"}}>{props.description}</p></div>
           </div>
           <input ref={inputRef} type="file" multiple accept={ACCEPT_STRING} onChange={onInput} style={{display:"none"}}/>
           <div onDragOver={function(e){e.preventDefault();setDragOver(true)}} onDragLeave={function(){setDragOver(false)}} onDrop={onDrop} onClick={openPicker}
-            style={{border:"2px dashed "+(dragOver?"#C9A961":"#CBD5E1"),borderRadius:"14px",padding:props.files.length>0?"20px":"36px 20px",textAlign:"center",cursor:"pointer",backgroundColor:dragOver?"#FDF8EC":"#FAFBFC"}}>
+            style={{border:"2px dashed "+(dragOver?"#0D9488":"#CBD5E1"),borderRadius:"14px",padding:props.files.length>0?"20px":"36px 20px",textAlign:"center",cursor:"pointer",backgroundColor:dragOver?"#F0FDFA":"#FAFBFC"}}>
             {props.files.length===0?(
               <div><div style={{fontSize:"40px",marginBottom:"10px",opacity:.5}}>{"\u{1F4C2}"}</div>
-              <p style={{margin:0,fontSize:"15px",color:"#475569"}}><span style={{color:"#C9A961",fontWeight:700}}>Click to browse</span> or drag & drop</p>
+              <p style={{margin:0,fontSize:"15px",color:"#475569"}}><span style={{color:"#0D9488",fontWeight:700}}>Click to browse</span> or drag & drop</p>
               <div style={{display:"flex",flexWrap:"wrap",justifyContent:"center",gap:"6px",marginTop:"12px"}}>
                 {["PDF","Excel","CSV","Word","Text"].map(function(f){return <span key={f} style={{padding:"3px 10px",borderRadius:"6px",fontSize:"11px",backgroundColor:"#F1F5F9",color:"#64748B"}}>{f}</span>})}
               </div></div>
@@ -311,7 +293,7 @@
                     <button onClick={function(e){e.preventDefault();e.stopPropagation();props.onRemoveFile(i)}} style={{background:"#FEF2F2",border:"1px solid #FECACA",cursor:"pointer",color:"#EF4444",fontSize:"13px",padding:"4px 10px",borderRadius:"6px",fontWeight:600,marginLeft:"10px"}}>Remove</button>
                   </div>);
                 })}
-                <div style={{fontSize:"13px",color:"#C9A961",fontWeight:600,marginTop:"4px"}}>+ Click to add more</div>
+                <div style={{fontSize:"13px",color:"#0D9488",fontWeight:600,marginTop:"4px"}}>+ Click to add more</div>
               </div>
             )}
           </div>
@@ -336,7 +318,7 @@
                   var disabled=!g.hasRef;
                   var tip=disabled?"Reference document not yet available":"Full reference document loaded";
                   return(
-                    <button key={g.code} disabled={disabled} onClick={function(){if(!disabled)props.onToggle(g.code)}} title={tip} aria-disabled={disabled} style={{padding:"7px 14px",borderRadius:"8px",fontSize:"12px",border:disabled?"1.5px dashed #CBD5E1":(on?"2px solid #C9A961":"1.5px solid #E2E8F0"),backgroundColor:disabled?"#F1F5F9":(on?"#FDF8EC":"#fff"),color:disabled?"#94A3B8":(on?"#C9A961":"#475569"),cursor:disabled?"not-allowed":"pointer",fontWeight:600,position:"relative",opacity:disabled?0.7:1}}>
+                    <button key={g.code} disabled={disabled} onClick={function(){if(!disabled)props.onToggle(g.code)}} title={tip} aria-disabled={disabled} style={{padding:"7px 14px",borderRadius:"8px",fontSize:"12px",border:disabled?"1.5px dashed #CBD5E1":(on?"2px solid #0D9488":"1.5px solid #E2E8F0"),backgroundColor:disabled?"#F1F5F9":(on?"#F0FDFA":"#fff"),color:disabled?"#94A3B8":(on?"#0D9488":"#475569"),cursor:disabled?"not-allowed":"pointer",fontWeight:600,position:"relative",opacity:disabled?0.7:1}}>
                       {!disabled&&(on?"\u2713 ":"")}<strong>{g.code}</strong><span style={{fontWeight:400,opacity:.7,marginLeft:"4px",fontSize:"11px"}}>{" \u2014 "+g.title}</span>
                       {disabled&&<span style={{display:"inline-block",marginLeft:"6px",backgroundColor:"#E2E8F0",border:"1px solid #CBD5E1",borderRadius:"4px",padding:"1px 5px",fontWeight:700,color:"#64748B",fontSize:"10px",verticalAlign:"middle"}}>{"No Ref"}</span>}
                     </button>
@@ -445,10 +427,10 @@
           if(d.documentName)out+="<span style='font-size:11px;color:#1E3A8A;background:#EFF6FF;padding:3px 10px;border-radius:4px;font-weight:700;font-family:monospace;-webkit-print-color-adjust:exact;print-color-adjust:exact'>"+esc(d.documentName)+(d.clauseNumber&&d.clauseNumber!=="N/A"?" "+esc(d.clauseNumber):"")+"</"+"span>";
           out+="</"+"div>";
           out+="<div style='font-size:14px;font-weight:700;color:#1E293B;margin-bottom:8px'>"+esc(d.title)+"</"+"div>";
-          if(d.clauseSummary)out+="<div style='background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;padding:10px 14px;margin-bottom:10px'><span style='font-size:11px;font-weight:700;color:#0A1F44;text-transform:uppercase'>Clause requires:</"+"span><div style='font-size:12px;color:#1E293B;margin-top:4px;line-height:1.6'>"+esc(d.clauseSummary)+"</"+"div></"+"div>";
+          if(d.clauseSummary)out+="<div style='background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;padding:10px 14px;margin-bottom:10px'><span style='font-size:11px;font-weight:700;color:#1a1a2e;text-transform:uppercase'>Clause requires:</"+"span><div style='font-size:12px;color:#1E293B;margin-top:4px;line-height:1.6'>"+esc(d.clauseSummary)+"</"+"div></"+"div>";
           if(d.failureReason)out+="<div style='background:#FEF2F2;border:1px solid #FECACA;border-radius:6px;padding:10px 14px;margin-bottom:10px;-webkit-print-color-adjust:exact;print-color-adjust:exact'><span style='font-size:11px;font-weight:700;color:#991B1B;text-transform:uppercase'>How DPR fails it:</"+"span><div style='font-size:12px;color:#7F1D1D;margin-top:4px;line-height:1.6'>"+esc(d.failureReason)+"</"+"div></"+"div>";
-          if(d.location)out+="<div style='margin-bottom:10px'><span style='font-size:11px;font-weight:700;color:#0A1F44;text-transform:uppercase'>DPR Location:</"+"span> <span style='font-family:monospace;color:#C9A961;font-weight:600;font-size:12px'>"+esc(d.location)+"</"+"span></"+"div>";
-          if(d.description)out+="<div style='margin-bottom:10px'><span style='font-size:11px;font-weight:700;color:#0A1F44;text-transform:uppercase'>Description:</"+"span><div style='font-size:12px;color:#475569;line-height:1.7;margin-top:4px'>"+esc(d.description)+"</"+"div></"+"div>";
+          if(d.location)out+="<div style='margin-bottom:10px'><span style='font-size:11px;font-weight:700;color:#1a1a2e;text-transform:uppercase'>DPR Location:</"+"span> <span style='font-family:monospace;color:#0D9488;font-weight:600;font-size:12px'>"+esc(d.location)+"</"+"span></"+"div>";
+          if(d.description)out+="<div style='margin-bottom:10px'><span style='font-size:11px;font-weight:700;color:#1a1a2e;text-transform:uppercase'>Description:</"+"span><div style='font-size:12px;color:#475569;line-height:1.7;margin-top:4px'>"+esc(d.description)+"</"+"div></"+"div>";
           if(d.impact)out+="<div style='background:#FEF2F2;border:1px solid #FECACA;border-radius:6px;padding:10px 14px;margin-bottom:10px;-webkit-print-color-adjust:exact;print-color-adjust:exact'><span style='font-size:11px;font-weight:700;color:#991B1B;text-transform:uppercase'>Impact if Not Corrected:</"+"span><div style='color:#DC2626;font-size:12px;margin-top:4px;line-height:1.6'>"+esc(d.impact)+"</"+"div></"+"div>";
           if(d.correctiveAction)out+="<div style='background:#ECFEFF;border:1px solid #A5F3FC;border-radius:6px;padding:10px 14px;margin-bottom:10px;-webkit-print-color-adjust:exact;print-color-adjust:exact'><span style='font-size:11px;font-weight:700;color:#155E75;text-transform:uppercase'>Recommended Corrective Action:</"+"span><div style='color:#0E7490;font-size:12px;margin-top:4px;line-height:1.6'>"+esc(d.correctiveAction)+"</"+"div></"+"div>";
           if(d.severityJustification)out+="<div style='background:#FFF7ED;border:1px solid #FED7AA;border-radius:6px;padding:10px 14px;margin-bottom:4px;-webkit-print-color-adjust:exact;print-color-adjust:exact'><span style='font-size:11px;font-weight:700;color:#9A3412;text-transform:uppercase'>Severity Justification:</"+"span><div style='color:#B45309;font-size:12px;margin-top:4px;line-height:1.6'>"+esc(d.severityJustification)+"</"+"div></"+"div>";
@@ -458,7 +440,7 @@
         function buildTable(rows){
           var t="<table style='width:100%;border-collapse:collapse;table-layout:fixed;page-break-inside:auto'>";
           t+="<thead style='display:table-header-group'><tr>";
-          var thS="background:#0A1F44;color:#fff;padding:10px 6px;font-size:10px;border:1px solid #0A1F44;-webkit-print-color-adjust:exact;print-color-adjust:exact";
+          var thS="background:#1a1a2e;color:#fff;padding:10px 6px;font-size:10px;border:1px solid #1a1a2e;-webkit-print-color-adjust:exact;print-color-adjust:exact";
           t+="<th style='width:28px;text-align:center;"+thS+"'>#</th><th style='width:65px;text-align:center;"+thS+"'>Severity</th><th style='width:75px;text-align:center;"+thS+"'>Type</th><th style='width:130px;"+thS+"'>Issue</th><th style='width:110px;"+thS+"'>Document &amp; Clause</th><th style='width:140px;"+thS+"'>DPR Location</th><th style='"+thS+"'>How DPR Fails</th><th style='width:170px;"+thS+"'>Corrective Action</th>";
           t+="</tr></thead><tbody>";
           rows.forEach(function(d,i){
@@ -469,7 +451,7 @@
             t+="<td style='padding:8px 4px;border:1px solid #E2E8F0;text-align:center;font-size:10px;color:"+(ct2==="Design"?"#3730A3":"#92400E")+";font-weight:700;vertical-align:top;"+bg2+"'>"+esc(ct2)+"</td>";
             t+="<td style='padding:8px 6px;border:1px solid #E2E8F0;font-weight:600;color:#1E293B;font-size:11px;vertical-align:top;"+bg2+"'>"+esc(d.title)+"</td>";
             t+="<td style='padding:8px 6px;border:1px solid #E2E8F0;font-size:10px;color:#1E3A8A;font-family:monospace;font-weight:600;vertical-align:top;"+bg2+"'>"+esc((d.documentName||"")+(d.clauseNumber&&d.clauseNumber!=="N/A"?" "+d.clauseNumber:""))+"</td>";
-            t+="<td style='padding:8px 6px;border:1px solid #E2E8F0;font-size:10px;font-family:monospace;color:#C9A961;font-weight:600;vertical-align:top;"+bg2+"'>"+esc(d.location||"")+"</td>";
+            t+="<td style='padding:8px 6px;border:1px solid #E2E8F0;font-size:10px;font-family:monospace;color:#0D9488;font-weight:600;vertical-align:top;"+bg2+"'>"+esc(d.location||"")+"</td>";
             t+="<td style='padding:8px 6px;border:1px solid #E2E8F0;font-size:10px;color:#475569;line-height:1.4;vertical-align:top;"+bg2+"'>"+esc(d.failureReason||d.description||"")+"</td>";
             t+="<td style='padding:8px 6px;border:1px solid #E2E8F0;font-size:10px;color:#0E7490;line-height:1.4;vertical-align:top;background:#ECFEFF;-webkit-print-color-adjust:exact;print-color-adjust:exact'>"+esc(d.correctiveAction||d.recommendation||"")+"</td></tr>";
           });
@@ -489,43 +471,42 @@
         var h=[];
         h.push("<!DOCTYPE html><html><head><meta charset='UTF-8'><title>DPR Analysis Report"+(hdr.projectName?" — "+esc(hdr.projectName):"")+"</title>");
         h.push("<style>@page{size:"+pageSize+";margin:12mm}body{font-family:Arial,Helvetica,sans-serif;margin:0;padding:"+bodyPadding+";color:#1E293B;font-size:13px;-webkit-print-color-adjust:exact;print-color-adjust:exact}");
-        if(mode==="print"){h.push(".no-screen{display:none}.print-banner{position:sticky;top:0;background:#C9A961;color:#fff;padding:10px 18px;text-align:center;font-weight:700;font-size:13px;border-radius:6px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,.1)}@media print{.print-banner{display:none}}")}
+        if(mode==="print"){h.push(".no-screen{display:none}.print-banner{position:sticky;top:0;background:#0D9488;color:#fff;padding:10px 18px;text-align:center;font-weight:700;font-size:13px;border-radius:6px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,.1)}@media print{.print-banner{display:none}}")}
         h.push("</style></head><body>");
 
         if(mode==="print"){h.push("<div class='print-banner'>🖨️ Print View — use your browser's Print menu (Ctrl/Cmd+P) to print or save as PDF.</div>")}
 
-        /* AURIS-styled report header */
-        h.push("<div style='background:linear-gradient(135deg,#0A1F44,#1E3A6E);color:#fff;padding:20px 30px;border-radius:8px;margin-bottom:18px;-webkit-print-color-adjust:exact;print-color-adjust:exact'>");
+        /* Report header */
+        h.push("<div style='background:linear-gradient(135deg,#1a1a2e,#0f3460);color:#fff;padding:20px 30px;border-radius:8px;margin-bottom:18px;-webkit-print-color-adjust:exact;print-color-adjust:exact'>");
         h.push("<div style='display:flex;align-items:center;gap:16px'>");
-        h.push("<div style='display:inline-flex;align-items:center;justify-content:center;height:55px;padding:0 19px;border-radius:8px;border:1.5px solid #C9A961;font-family:\"Playfair Display\",Georgia,serif;font-weight:800;font-size:24px;letter-spacing:0.3em;color:#C9A961;line-height:1;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact'><span style='padding-left:0.3em'>AURIS</span></div>");
-        h.push("<div style='flex:1'><div style='font-size:11px;color:#C9A961;letter-spacing:1px;text-transform:uppercase;font-weight:700'>"+esc(AURIS_TAGLINE)+"</div>");
-        h.push("<div style='font-size:24px;font-weight:800;margin-top:2px'>DPR Analysis Report <span style=\"font-size:13px;color:#C9A961;font-weight:700;letter-spacing:1px;margin-left:6px\">Ver67</span></div>");
+        h.push("<div style='flex:1'><div style='font-size:11px;opacity:0.5;letter-spacing:1px;text-transform:uppercase'>Border Roads Organisation</div>");
+        h.push("<div style='font-size:24px;font-weight:800;margin-top:2px'>DPR Analysis Report <span style=\"font-size:13px;opacity:.7;font-weight:700;letter-spacing:1px;margin-left:6px\">Ver67</span></div>");
         h.push("<div style='font-size:12px;opacity:0.5;margin-top:4px'>Generated "+dateStr+" at "+timeStr+"</div></div>");
         h.push("<div style='text-align:right;font-size:11px;line-height:1.6'><div style='opacity:0.4'>Developed by</div><div style='font-weight:700;font-size:13px;opacity:0.8'>Col Ashish Bhardwaj</div></div>");
         h.push("</div></div>");
 
         /* Project meta table */
         h.push("<div style='background:#fff;border:2px solid #E2E8F0;border-radius:8px;padding:16px 20px;margin-bottom:18px'>");
-        h.push("<div style='font-size:15px;font-weight:700;margin-bottom:10px;color:#0A1F44'>Project & Review Details</div>");
+        h.push("<div style='font-size:15px;font-weight:700;margin-bottom:10px;color:#1a1a2e'>Project & Review Details</div>");
         h.push("<table style='width:100%;border-collapse:collapse;table-layout:fixed'>"+headerMetaRows+"</table>");
         h.push("</div>");
 
         /* Executive summary */
         h.push("<div style='background:#fff;border:2px solid #E2E8F0;border-radius:8px;padding:20px 24px;margin-bottom:24px'>");
-        h.push("<div style='font-size:16px;font-weight:700;margin-bottom:10px;color:#0A1F44'>Executive Summary</div>");
+        h.push("<div style='font-size:16px;font-weight:700;margin-bottom:10px;color:#1a1a2e'>Executive Summary</div>");
         h.push("<p style='margin:0 0 16px;line-height:1.7;color:#475569;font-size:13px'>"+esc(results.summary)+"</p>");
         h.push("<div style='display:flex;flex-wrap:wrap;gap:10px'>");
         h.push("<span style='display:inline-block;text-align:center;padding:8px 18px;border-radius:8px;border:2px solid #E2E8F0'><div style='font-size:26px;font-weight:800;color:"+scoreColor+"'>"+results.complianceScore+"%</div><div style='font-size:9px;text-transform:uppercase;color:#64748B;margin-top:4px;font-weight:700'>Compliance</div></span>");
         if(results.riskLevel){var rc2=(results.riskLevel==="Severe"||results.riskLevel==="High")?"#DC2626":"#D97706";h.push("<span style='display:inline-block;text-align:center;padding:8px 18px;border-radius:8px;border:2px solid #E2E8F0'><div style='font-size:20px;font-weight:800;color:"+rc2+"'>"+esc(results.riskLevel)+"</div><div style='font-size:9px;text-transform:uppercase;color:#64748B;margin-top:4px;font-weight:700'>Risk Level</div></span>")}
-        [{n:counts.critical,l:"Critical",c:"#DC2626"},{n:counts.major,l:"Major",c:"#D97706"},{n:counts.minor,l:"Minor",c:"#2563EB"},{n:counts.observation,l:"Info",c:"#6B7280"},{n:total,l:"Total",c:"#C9A961"}].forEach(function(si){h.push("<span style='display:inline-block;text-align:center;padding:8px 18px;border-radius:8px;border:2px solid #E2E8F0'><div style='font-size:26px;font-weight:800;color:"+si.c+"'>"+si.n+"</div><div style='font-size:9px;text-transform:uppercase;color:#64748B;margin-top:4px;font-weight:700'>"+si.l+"</div></span>")});
+        [{n:counts.critical,l:"Critical",c:"#DC2626"},{n:counts.major,l:"Major",c:"#D97706"},{n:counts.minor,l:"Minor",c:"#2563EB"},{n:counts.observation,l:"Info",c:"#6B7280"},{n:total,l:"Total",c:"#0D9488"}].forEach(function(si){h.push("<span style='display:inline-block;text-align:center;padding:8px 18px;border-radius:8px;border:2px solid #E2E8F0'><div style='font-size:26px;font-weight:800;color:"+si.c+"'>"+si.n+"</div><div style='font-size:9px;text-transform:uppercase;color:#64748B;margin-top:4px;font-weight:700'>"+si.l+"</div></span>")});
         h.push("</div></div>");
 
         /* Part A: table */
-        h.push("<div style='font-size:17px;font-weight:700;color:#0A1F44;margin:28px 0 14px;padding-bottom:8px;border-bottom:2px solid #0A1F44'>Part A: Quick Reference Table</div>");
+        h.push("<div style='font-size:17px;font-weight:700;color:#1a1a2e;margin:28px 0 14px;padding-bottom:8px;border-bottom:2px solid #1a1a2e'>Part A: Quick Reference Table</div>");
         h.push(buildTable(defs));
 
         /* Part B: split into Design + Documentation */
-        h.push("<div style='font-size:17px;font-weight:700;color:#0A1F44;margin:28px 0 14px;padding-bottom:8px;border-bottom:2px solid #0A1F44;page-break-before:always'>Part B: Detailed Findings and Recommendations</div>");
+        h.push("<div style='font-size:17px;font-weight:700;color:#1a1a2e;margin:28px 0 14px;padding-bottom:8px;border-bottom:2px solid #1a1a2e;page-break-before:always'>Part B: Detailed Findings and Recommendations</div>");
         h.push("<p style='font-size:12px;color:#64748B;margin-bottom:16px;line-height:1.6'>Each finding includes the cited clause, how the DPR fails to meet it, recommended corrective action and a severity justification.</p>");
         var design=defs.filter(function(d){return (d.complianceType||"Design")==="Design"});
         var docs=defs.filter(function(d){return d.complianceType==="Documentation"});
@@ -549,8 +530,8 @@
         }
         h.push("</div>");
 
-        h.push("<div style='text-align:center;font-size:10px;color:#64748B;margin-top:18px;padding-top:12px;border-top:2px solid #0A1F44'>");
-        h.push("<strong>Generated by AURIS DPR Analyzer Pro Ver67</strong> &nbsp;·&nbsp; "+esc(AURIS_TAGLINE)+" &nbsp;·&nbsp; <strong>Developed by Col Ashish Bhardwaj</strong><br>");
+        h.push("<div style='text-align:center;font-size:10px;color:#64748B;margin-top:18px;padding-top:12px;border-top:2px solid #1a1a2e'>");
+        h.push("<strong>Generated by DPR Analyzer Pro Ver67</strong> | Border Roads Organisation | <strong>Developed by Col Ashish Bhardwaj</strong><br>");
         h.push("<span style='font-size:9px;color:#94A3B8'>All findings should be verified by a qualified engineer.</span></div>");
         h.push("</body></html>");
         return h.join("");
@@ -690,14 +671,14 @@
 
       return(
         <div>
-          <div style={{background:"linear-gradient(135deg,#0A1F44 0%,#142B5C 50%,#1E3A6E 100%)",borderRadius:"18px",padding:"28px",marginBottom:"24px",color:"#fff",position:"relative",overflow:"hidden"}}>
+          <div style={{background:"linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%)",borderRadius:"18px",padding:"28px",marginBottom:"24px",color:"#fff",position:"relative",overflow:"hidden"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"16px",flexWrap:"wrap",gap:"10px"}}>
               <div><h2 style={{margin:"0 0 4px",fontFamily:"'Playfair Display',serif",fontSize:"24px",fontWeight:800}}>{"\u2705 Analysis Complete"}</h2><p style={{margin:0,fontSize:"13px",opacity:.6}}>{total+" issue"+(total!==1?"s":"")+" found"}</p></div>
               <div style={{display:"flex",gap:"8px",flexWrap:"wrap"}} className="no-print">
                 <button onClick={handleDownloadPDF} title="Open a print dialog \u2014 choose 'Save as PDF'" style={{backgroundColor:"#DC2626",border:"1px solid #DC2626",color:"#fff",padding:"8px 16px",borderRadius:"8px",cursor:"pointer",fontSize:"12px",fontWeight:700}}>{"\u{1F4C4} PDF"}</button>
                 <button onClick={handleDownloadWord} title="Download an editable .doc file" style={{backgroundColor:"#1D4ED8",border:"1px solid #1D4ED8",color:"#fff",padding:"8px 16px",borderRadius:"8px",cursor:"pointer",fontSize:"12px",fontWeight:700}}>{"\u{1F4DD} Word (.docx)"}</button>
                 <button onClick={handlePrint} title="Clean on-screen print view" style={{backgroundColor:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",padding:"8px 16px",borderRadius:"8px",cursor:"pointer",fontSize:"12px",fontWeight:600}}>{"\u{1F5A8}\uFE0F Print View"}</button>
-                <button onClick={function(){var blob=new Blob([JSON.stringify(results,null,2)],{type:"application/json"});var u=URL.createObjectURL(blob);var a=document.createElement("a");a.href=u;a.download=safeFileBase()+".json";document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(u)},300)}} title="Download the analysis result as JSON (load it in verify-report.html to spot-check every clause citation against the loaded IRC files)" style={{backgroundColor:"#0A1F44",border:"1px solid #C9A961",color:"#C9A961",padding:"8px 16px",borderRadius:"8px",cursor:"pointer",fontSize:"12px",fontWeight:700}}>{"\u{1F4E5} JSON (verifier)"}</button>
+                <button onClick={function(){var blob=new Blob([JSON.stringify(results,null,2)],{type:"application/json"});var u=URL.createObjectURL(blob);var a=document.createElement("a");a.href=u;a.download=safeFileBase()+".json";document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(u)},300)}} title="Download the analysis result as JSON (load it in verify-report.html to spot-check every clause citation against the loaded IRC files)" style={{backgroundColor:"#1a1a2e",border:"1px solid #0D9488",color:"#0D9488",padding:"8px 16px",borderRadius:"8px",cursor:"pointer",fontSize:"12px",fontWeight:700}}>{"\u{1F4E5} JSON (verifier)"}</button>
                 <button onClick={generatePodcast} disabled={pcStatus==="scripting"||pcStatus==="audio"} title="Generate a short two-host audio overview of this report" style={{background:(pcStatus==="scripting"||pcStatus==="audio")?"#7C3AED":"linear-gradient(135deg,#7C3AED,#9333EA)",border:"1px solid #7C3AED",color:"#fff",padding:"8px 16px",borderRadius:"8px",cursor:(pcStatus==="scripting"||pcStatus==="audio")?"wait":"pointer",fontSize:"12px",fontWeight:700,opacity:(pcStatus==="scripting"||pcStatus==="audio")?0.8:1}}>{(pcStatus==="scripting"||pcStatus==="audio")?"\u{1F399}\uFE0F Generating\u2026":"\u{1F399}\uFE0F Podcast"}</button>
                 <button onClick={props.onReset} style={{backgroundColor:"rgba(255,255,255,0.1)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",padding:"8px 16px",borderRadius:"8px",cursor:"pointer",fontSize:"12px",fontWeight:600}}>{"\u{1F504} New Analysis"}</button>
               </div>
@@ -734,8 +715,8 @@
                   </div>
                   {pcShowText&&pcScript&&(
                     <div style={{marginTop:"12px",background:"#fff",border:"1px solid #E9D5FF",borderRadius:"8px",padding:"12px 14px",maxHeight:"260px",overflowY:"auto"}}>
-                      {pcScript.title&&<div style={{fontWeight:700,fontSize:"13px",color:"#0A1F44",marginBottom:"8px"}}>{pcScript.title}</div>}
-                      {pcScript.turns.map(function(t,i){var nm=t.speaker==="B"?PC_SPEAKERS.B.name:PC_SPEAKERS.A.name;var col=t.speaker==="B"?"#9333EA":"#C9A961";return <div key={i} style={{marginBottom:"7px",fontSize:"12px",lineHeight:1.6}}><span style={{fontWeight:700,color:col}}>{nm+": "}</span><span style={{color:"#334155"}}>{t.text}</span></div>})}
+                      {pcScript.title&&<div style={{fontWeight:700,fontSize:"13px",color:"#1a1a2e",marginBottom:"8px"}}>{pcScript.title}</div>}
+                      {pcScript.turns.map(function(t,i){var nm=t.speaker==="B"?PC_SPEAKERS.B.name:PC_SPEAKERS.A.name;var col=t.speaker==="B"?"#9333EA":"#0D9488";return <div key={i} style={{marginBottom:"7px",fontSize:"12px",lineHeight:1.6}}><span style={{fontWeight:700,color:col}}>{nm+": "}</span><span style={{color:"#334155"}}>{t.text}</span></div>})}
                     </div>
                   )}
                 </div>
@@ -748,10 +729,10 @@
               <div style={{marginTop:"10px",fontSize:"10px",color:"#A78BFA"}}>Auto-generated spoken overview for quick understanding. Always refer to the full written report for engineering decisions.</div>
             </div>
           )}
-          {cats.length>0&&(<div className="no-print" style={{marginBottom:"16px"}}><div style={{fontSize:"12px",fontWeight:700,color:"#94A3B8",textTransform:"uppercase",marginBottom:"8px"}}>Filter by Category</div><div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}><button onClick={function(){setFilterCat("all")}} style={{padding:"6px 12px",borderRadius:"8px",fontSize:"12px",fontWeight:600,border:filterCat==="all"?"2px solid #C9A961":"1.5px solid #E2E8F0",backgroundColor:filterCat==="all"?"#FDF8EC":"#fff",color:filterCat==="all"?"#C9A961":"#64748B",cursor:"pointer"}}>{"All ("+total+")"}</button>{cats.map(function(cat){var cc=CATEGORY_CONFIG[cat]||{emoji:"\u{1F4CB}",color:"#64748B"};var n=defs.filter(function(d){return d.category===cat}).length;return <button key={cat} onClick={function(){setFilterCat(filterCat===cat?"all":cat)}} style={{padding:"6px 12px",borderRadius:"8px",fontSize:"12px",fontWeight:600,border:filterCat===cat?"2px solid "+cc.color:"1.5px solid #E2E8F0",backgroundColor:filterCat===cat?cc.color+"10":"#fff",color:filterCat===cat?cc.color:"#64748B",cursor:"pointer"}}>{cc.emoji+" "+cat+" ("+n+")"}</button>})}</div></div>)}
+          {cats.length>0&&(<div className="no-print" style={{marginBottom:"16px"}}><div style={{fontSize:"12px",fontWeight:700,color:"#94A3B8",textTransform:"uppercase",marginBottom:"8px"}}>Filter by Category</div><div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}><button onClick={function(){setFilterCat("all")}} style={{padding:"6px 12px",borderRadius:"8px",fontSize:"12px",fontWeight:600,border:filterCat==="all"?"2px solid #0D9488":"1.5px solid #E2E8F0",backgroundColor:filterCat==="all"?"#F0FDFA":"#fff",color:filterCat==="all"?"#0D9488":"#64748B",cursor:"pointer"}}>{"All ("+total+")"}</button>{cats.map(function(cat){var cc=CATEGORY_CONFIG[cat]||{emoji:"\u{1F4CB}",color:"#64748B"};var n=defs.filter(function(d){return d.category===cat}).length;return <button key={cat} onClick={function(){setFilterCat(filterCat===cat?"all":cat)}} style={{padding:"6px 12px",borderRadius:"8px",fontSize:"12px",fontWeight:600,border:filterCat===cat?"2px solid "+cc.color:"1.5px solid #E2E8F0",backgroundColor:filterCat===cat?cc.color+"10":"#fff",color:filterCat===cat?cc.color:"#64748B",cursor:"pointer"}}>{cc.emoji+" "+cat+" ("+n+")"}</button>})}</div></div>)}
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"14px"}}>
-            <h3 style={{margin:0,fontSize:"17px",fontWeight:700,color:"#0A1F44"}}>{"Deficiencies ("+filtered.length+((filterSev!=="all"||filterCat!=="all")?" of "+total:"")+")"}</h3>
-            {(filterSev!=="all"||filterCat!=="all")&&<button className="no-print" onClick={function(){setFilterSev("all");setFilterCat("all")}} style={{fontSize:"12px",color:"#C9A961",background:"none",border:"none",cursor:"pointer",fontWeight:600}}>{"\u2715 Clear filters"}</button>}
+            <h3 style={{margin:0,fontSize:"17px",fontWeight:700,color:"#1a1a2e"}}>{"Deficiencies ("+filtered.length+((filterSev!=="all"||filterCat!=="all")?" of "+total:"")+")"}</h3>
+            {(filterSev!=="all"||filterCat!=="all")&&<button className="no-print" onClick={function(){setFilterSev("all");setFilterCat("all")}} style={{fontSize:"12px",color:"#0D9488",background:"none",border:"none",cursor:"pointer",fontWeight:600}}>{"\u2715 Clear filters"}</button>}
           </div>
           {filtered.length===0?<div style={{textAlign:"center",padding:"40px",color:"#94A3B8",backgroundColor:"#fff",borderRadius:"14px"}}>No issues for this filter.</div>:(function(){
             var design=filtered.filter(function(d){return (d.complianceType||"Design")==="Design"});
@@ -891,7 +872,7 @@
             if(reviewDate)hdr+="\n- Date of Review: "+reviewDate;
           }
           var ct=(ctx.trim()?"\n\nAdditional context: "+ctx:"")+hdr;
-          blocks.push({type:"text",text:"Analyze the DPR document(s) above against guidelines and regulatory requirements."+gt+ct+"\n\nPerform a professional DPR compliance audit specifically for a BRO hill/mountain road project. PRIORITY CODES FOR BRO: IRC:SP:48 (Hill Road Design — check hairpin bends, formation width, hill cutting, retaining walls, side drains), IRC:52 (Mountain Roads), IRC:73 (Geometric Design — gradients, curves, sight distance), IRC:SP:13 (Culverts and minor bridges), IRC:SP:42 (Drainage — especially cross drainage in hill terrain, catch water drains, scuppers). Check all of: traffic data, geometric design, pavement, drainage, safety, environmental, land acquisition, cost estimation, material specs, bridges/culverts, survey, drawings, utilities, schedule, quality plan.\n\nCLAUSE-LEVEL CITATION RULES (MANDATORY — VER63):\nEvery deficiency MUST be backed by a specific clause from a loaded [IRC REFERENCE: filename] document. For every finding you MUST populate ALL of these fields:\n  - documentName: the exact document code, e.g. \"IRC:SP:42\", \"IRC:73\", \"IRC:SP:48\", \"MoRTH 5th Revision\". Take this from the [IRC REFERENCE: filename] header of the document you pulled the clause from.\n  - clauseNumber: the exact clause/section/table number as printed in that document, e.g. \"Clause 4.3.2\", \"Section 5.4\", \"Table 3.1\". DO NOT invent or paraphrase. Quote it verbatim.\n  - clauseSummary: a SINGLE concise line (max 30 words) stating what that specific clause requires.\n  - failureReason: a precise statement of HOW the DPR fails to meet this specific clause — quote the value/text from the DPR and contrast it with the clause's requirement.\nIf — and only if — the relevant clause cannot be located inside any [IRC REFERENCE: filename] block above, you MUST set:\n  - documentName: \"General Observation\"\n  - clauseNumber: \"N/A\"\n  - clauseSummary: \"General Observation — clause reference not available\"\n  - failureReason: still describe how the DPR is deficient on this point.\nNEVER fabricate a clause number. NEVER cite a code whose [IRC REFERENCE] block is not present above. If you are unsure, fall back to the General Observation form.\n\nThe legacy 'clause' field MUST still be populated for backwards compatibility — set it to documentName + \" \" + clauseNumber (e.g. \"IRC:SP:42 Clause 4.3.2\"), or \"General Observation\" when the clause is unavailable.\n\nCRITICAL: Output ONLY valid JSON. No markdown. No backticks. No text before or after. No trailing commas. Ensure every array and object is properly closed.\n\nThe output report will be used as a working guideline for engineers to carry out amendments in the DPR. So provide DETAILED and SPECIFIC information in every field.\n\n{\"summary\":\"4-5 sentence overview of DPR quality, key gaps, and overall compliance assessment\",\"complianceScore\":<0-100>,\"riskLevel\":\"Low|Moderate|High|Severe\",\"deficiencies\":[{\"severity\":\"critical|major|minor|observation\",\"complianceType\":\"Design|Documentation\",\"category\":\"Design|Pavement|Drainage|Safety|Cost|Survey|Structural|Environmental|Land|Utilities|Schedule|Quality|Documentation\",\"title\":\"Clear issue title\",\"documentName\":\"IRC:SP:42 | IRC:73 | MoRTH 5th Revision | ... | General Observation\",\"clauseNumber\":\"Clause 4.3.2 | Section 5.4 | Table 3.1 | N/A\",\"clauseSummary\":\"One-line summary of what that clause requires, or 'General Observation — clause reference not available'\",\"failureReason\":\"How the DPR fails to meet this specific clause — quote DPR values vs clause requirement\",\"clause\":\"documentName + space + clauseNumber for backwards compat\",\"location\":\"Exact DPR location - sheet name, section, page, table, row number, chainage etc.\",\"description\":\"Detailed technical explanation of what is wrong, what is missing, or what does not comply. Include specific values found vs required values where applicable. 2-3 sentences.\",\"impact\":\"Detailed consequence if this deficiency is not corrected - structural risk, cost overrun, safety hazard, project delay, regulatory rejection etc. 2-3 sentences.\",\"recommendation\":\"Step-by-step actionable fix with specific standards to follow, calculations to perform, data to collect, or sections to add. 2-3 sentences.\",\"correctiveAction\":\"A precise, numbered Recommended Corrective Action the design team can execute — what to redo, recalculate, or insert, in concrete engineering terms. 2-3 sentences.\",\"severityJustification\":\"Explanation of why this finding is Critical / Major / Minor / Observation, anchored in the cited clause (e.g. 'Critical because IRC:SP:48 Clause 6.2 mandates minimum hairpin radius of 14 m for hill roads carrying buses; DPR shows 9 m — direct safety hazard.'). 1-2 sentences.\"}]}\n\ncomplianceType rules: use 'Documentation' for findings about missing/incomplete documents, signatures, drawings, registers, certifications, NOCs, approvals or report sections. Use 'Design' for everything substantive about geometry, pavement, drainage, structures, safety, materials, calculations, BOQ correctness, etc.\n\nSeverity definitions: critical=direct safety hazard or mandatory IRC/MoRTH code violation; major=significant technical flaw or missing mandatory calculation; minor=incomplete or insufficient data, missing supporting documents, inadequate detail; observation=suggestion for improvement or best practice recommendation. A well-prepared DPR will typically have a balanced mix of all four severity levels. Provide detailed content in description, impact, and recommendation fields (2-3 sentences each). Minimum 12 findings. Maximum 20."});
+          blocks.push({type:"text",text:"Analyze the DPR document(s) above against guidelines and regulatory requirements."+gt+ct+"\n\nPerform a professional DPR compliance audit specifically for a BRO hill/mountain road project. PRIORITY CODES FOR BRO: IRC:SP:48 (Hill Road Manual — slope stability, retaining/breast walls, hill cutting, formation width, catch water drains, hill-road pavement & earthwork; NOT geometric design), IRC:52 (Geometric Design of Hill Roads — hairpin bend minimum radius, curve radii, superelevation, transition curves, sight distance, gradients, climbing/escape lanes, vertical curves), IRC:73 (Geometric Design — Rural Highways; use for non-hill geometric design), IRC:SP:13 (Culverts and minor bridges), IRC:SP:42 (Drainage — especially cross drainage in hill terrain, catch water drains, scuppers), IRC:SP:55 (Traffic Management in Work Zones — WTMP, TTC zone layout, taper lengths, signs, channelizers, flagman). Check all of: traffic data, geometric design, pavement, drainage, safety, environmental, land acquisition, cost estimation, material specs, bridges/culverts, survey, drawings, utilities, schedule, quality plan, work zone traffic management.\n\nDOCUMENT-ATTRIBUTION RULES — common confusions to AVOID:\n1. Hairpin bend minimum radius, curve radii (ruling/absolute minimum), superelevation rate and its maximum, transition curve length, sight distance, gradients, vertical curves, set-back distance, carriageway widening at curves — these live in IRC:52 (e.g. Cl. 6.8.2 superelevation, Cl. 6.10.1 hairpin radius, Table 6.8 minimum curve radii). DO NOT attribute these geometric-design clauses to IRC:SP:48. IRC:SP:48 itself states geometric design and alignment survey are covered separately in IRC:52.\n2. Slope stability, landslide investigation, retaining/breast wall design, catch water drains, hill-road pavement layers, hill-road drainage, earthwork in hill terrain — these live in IRC:SP:48.\n3. Work zone traffic management plan (WTMP), construction-phase advance warning length, taper rate, buffer space, cones/drums/barricades, flagman PPE — these live in IRC:SP:55 (NOT IRC:SP:88 — that code is NOT loaded).\n4. Before emitting any citation, MENTALLY VERIFY: open the cited [IRC REFERENCE: filename] block and confirm the exact clauseNumber string appears there. If it does not, either (a) locate the correct file where it does appear and change documentName, or (b) fall back to General Observation.\n\nCLAUSE-LEVEL CITATION RULES (MANDATORY — VER63):\nEvery deficiency MUST be backed by a specific clause from a loaded [IRC REFERENCE: filename] document. For every finding you MUST populate ALL of these fields:\n  - documentName: the exact document code, e.g. \"IRC:SP:42\", \"IRC:73\", \"IRC:SP:48\", \"MoRTH 5th Revision\". Take this from the [IRC REFERENCE: filename] header of the document you pulled the clause from.\n  - clauseNumber: the exact clause/section/table number as printed in that document, e.g. \"Clause 4.3.2\", \"Section 5.4\", \"Table 3.1\". DO NOT invent or paraphrase. Quote it verbatim.\n  - clauseSummary: a SINGLE concise line (max 30 words) stating what that specific clause requires.\n  - failureReason: a precise statement of HOW the DPR fails to meet this specific clause — quote the value/text from the DPR and contrast it with the clause's requirement.\nIf — and only if — the relevant clause cannot be located inside any [IRC REFERENCE: filename] block above, you MUST set:\n  - documentName: \"General Observation\"\n  - clauseNumber: \"N/A\"\n  - clauseSummary: \"General Observation — clause reference not available\"\n  - failureReason: still describe how the DPR is deficient on this point.\nNEVER fabricate a clause number. NEVER cite a code whose [IRC REFERENCE] block is not present above. If you are unsure, fall back to the General Observation form.\n\nABSOLUTE RULE — LOADED REFERENCES ONLY: The ONLY codes you may cite by name are those that appear above as [IRC REFERENCE: filename] blocks. Even if you recognise a code from training knowledge (examples include IRC:6 bridge loads, IRC:78 bridge foundations, IRC:112 concrete bridges, IRC:SP:84 four-laning manual, IRC:SP:88 road safety audit, BR Regulations, IS:1893 seismic, IS:456 plain & reinforced concrete) and you are confident it is the topically correct reference — if it has no [IRC REFERENCE: filename] block above, you MUST emit the finding as documentName 'General Observation', clauseNumber 'N/A'. Citing an un-loaded code by name is treated as a fabrication and is a critical violation of these rules. Training-knowledge familiarity is NOT a substitute for a loaded reference block.\n\nThe legacy 'clause' field MUST still be populated for backwards compatibility — set it to documentName + \" \" + clauseNumber (e.g. \"IRC:SP:42 Clause 4.3.2\"), or \"General Observation\" when the clause is unavailable.\n\nCRITICAL: Output ONLY valid JSON. No markdown. No backticks. No text before or after. No trailing commas. Ensure every array and object is properly closed.\n\nThe output report will be used as a working guideline for engineers to carry out amendments in the DPR. So provide DETAILED and SPECIFIC information in every field.\n\n{\"summary\":\"4-5 sentence overview of DPR quality, key gaps, and overall compliance assessment\",\"complianceScore\":<0-100>,\"riskLevel\":\"Low|Moderate|High|Severe\",\"deficiencies\":[{\"severity\":\"critical|major|minor|observation\",\"complianceType\":\"Design|Documentation\",\"category\":\"Design|Pavement|Drainage|Safety|Cost|Survey|Structural|Environmental|Land|Utilities|Schedule|Quality|Documentation\",\"title\":\"Clear issue title\",\"documentName\":\"IRC:SP:42 | IRC:73 | MoRTH 5th Revision | ... | General Observation\",\"clauseNumber\":\"Clause 4.3.2 | Section 5.4 | Table 3.1 | N/A\",\"clauseSummary\":\"One-line summary of what that clause requires, or 'General Observation — clause reference not available'\",\"failureReason\":\"How the DPR fails to meet this specific clause — quote DPR values vs clause requirement\",\"clause\":\"documentName + space + clauseNumber for backwards compat\",\"location\":\"Exact DPR location - sheet name, section, page, table, row number, chainage etc.\",\"description\":\"Detailed technical explanation of what is wrong, what is missing, or what does not comply. Include specific values found vs required values where applicable. 2-3 sentences.\",\"impact\":\"Detailed consequence if this deficiency is not corrected - structural risk, cost overrun, safety hazard, project delay, regulatory rejection etc. 2-3 sentences.\",\"recommendation\":\"Step-by-step actionable fix with specific standards to follow, calculations to perform, data to collect, or sections to add. 2-3 sentences.\",\"correctiveAction\":\"A precise, numbered Recommended Corrective Action the design team can execute — what to redo, recalculate, or insert, in concrete engineering terms. 2-3 sentences.\",\"severityJustification\":\"Explanation of why this finding is Critical / Major / Minor / Observation, anchored in the cited clause (e.g. 'Critical because IRC:SP:48 Clause 6.2 mandates minimum hairpin radius of 14 m for hill roads carrying buses; DPR shows 9 m — direct safety hazard.'). 1-2 sentences.\"}]}\n\ncomplianceType rules: use 'Documentation' for findings about missing/incomplete documents, signatures, drawings, registers, certifications, NOCs, approvals or report sections. Use 'Design' for everything substantive about geometry, pavement, drainage, structures, safety, materials, calculations, BOQ correctness, etc.\n\nSeverity definitions: critical=direct safety hazard or mandatory IRC/MoRTH code violation; major=significant technical flaw or missing mandatory calculation; minor=incomplete or insufficient data, missing supporting documents, inadequate detail; observation=suggestion for improvement or best practice recommendation. A well-prepared DPR will typically have a balanced mix of all four severity levels. Provide detailed content in description, impact, and recommendation fields (2-3 sentences each). Minimum 12 findings. Maximum 20."});
 
           /* Start cycling progress messages - NO mention of any backend */
           setProgress(PROGRESS_MSGS[0]);setPct(50);
@@ -902,7 +883,7 @@
           },3000);
 
           var body=JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:32000,
-            system:"You are a senior highway design auditor with 20+ years experience in IRC Codes, MoRTH Specifications (5th Revision), Bridge and Culvert Codes, Pavement Design, Geometric Design, Road Safety, Drainage, Land Acquisition and Environmental norms. You perform professional DPR compliance audits for Indian Road/Highway projects. You are technically rigorous. You NEVER hallucinate clause numbers. Every deficiency you produce MUST cite a specific document (e.g. IRC:SP:42), an exact clause number (e.g. Clause 4.3.2), a one-line summary of what that clause requires, and a precise description of how the DPR fails it. If — and only if — a relevant clause is not present in the loaded reference documents, you must emit the finding as 'General Observation — clause reference not available' rather than invent a clause number. Code references that have no [IRC REFERENCE: filename] block above are NOT loaded and must not be cited.",
+            system:"You are a senior highway design auditor with 20+ years experience in IRC Codes, MoRTH Specifications (5th Revision), Bridge and Culvert Codes, Pavement Design, Geometric Design, Road Safety, Drainage, Land Acquisition and Environmental norms. You perform professional DPR compliance audits for Indian Road/Highway projects. You are technically rigorous. You NEVER hallucinate clause numbers. Every deficiency you produce MUST cite a specific document (e.g. IRC:SP:42), an exact clause number (e.g. Clause 4.3.2), a one-line summary of what that clause requires, and a precise description of how the DPR fails it. If — and only if — a relevant clause is not present in the loaded reference documents, you must emit the finding as 'General Observation — clause reference not available' rather than invent a clause number. Code references that have no [IRC REFERENCE: filename] block above are NOT loaded and must not be cited.\n\nTWO COMMON MISTAKES TO AVOID — IRC:52 vs IRC:SP:48: Hill-road GEOMETRIC DESIGN clauses (hairpin radius, curve radii, superelevation, transition curves, sight distance, gradients) live in IRC:52, NOT IRC:SP:48. IRC:SP:48 covers slope stability, retaining walls, hill-road pavement, catch water drains, earthwork — NOT geometric design. Loaded-code discipline: never cite a code by name unless its [IRC REFERENCE: filename] block is present above; if you only know it from training, downgrade the finding to General Observation. Before emitting each citation, mentally confirm the clauseNumber string actually appears inside the cited file's reference block.",
             messages:[{role:"user",content:blocks}]
           });
 
@@ -986,14 +967,13 @@
       var STEPS=[{emoji:"\u{1F4CB}",label:"Guidelines"},{emoji:"\u{1F4D1}",label:"Upload DPR"},{emoji:"\u{1F50D}",label:"Analyze"},{emoji:"\u{1F4CA}",label:"Report"}];
 
       return(
-        <div style={{minHeight:"100vh",backgroundColor:"#F8F5EE",fontFamily:"'Outfit',sans-serif"}}>
+        <div style={{minHeight:"100vh",backgroundColor:"#F5F7FA",fontFamily:"'Outfit',sans-serif"}}>
           {/* HEADER with API status dot */}
-          <div style={{background:"linear-gradient(135deg,#0A1F44 0%,#142B5C 50%,#1E3A6E 100%)",padding:"16px 20px",borderBottom:"3px solid #C9A961"}}>
+          <div style={{background:"linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%)",padding:"16px 20px",borderBottom:"3px solid #0D9488"}}>
             <div style={{maxWidth:"840px",margin:"0 auto",display:"flex",alignItems:"center",gap:"14px"}}>
-              <AurisMark size={50} onDark={true}/>
               <div style={{flex:1}}>
-                <h1 style={{margin:0,fontFamily:"'Playfair Display',serif",fontSize:"20px",fontWeight:800,color:"#fff"}}>AURIS DPR Analyzer Pro <span style={{fontSize:"12px",fontWeight:700,color:"#C9A961",letterSpacing:1}}>Ver67</span></h1>
-                <p style={{margin:0,fontSize:"11px",color:"rgba(201,169,97,0.85)",letterSpacing:".3px"}}>{AURIS_TAGLINE}</p>
+                <h1 style={{margin:0,fontFamily:"'Playfair Display',serif",fontSize:"20px",fontWeight:800,color:"#fff"}}>DPR Analyzer Pro <span style={{fontSize:"12px",fontWeight:700,opacity:.7,letterSpacing:1}}>Ver67</span></h1>
+                <p style={{margin:0,fontSize:"11px",color:"rgba(255,255,255,0.45)"}}>Compliance Analysis Engine | Border Roads Organisation</p>
               </div>
               <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:"6px"}}>
                 {/* API STATUS DOT */}
@@ -1013,7 +993,7 @@
   Developed by<br />
   <span
     style={{
-      color: "rgba(201,169,97,0.85)",
+      color: "rgba(255,255,255,0.5)",
       fontWeight: 600
     }}
   >
@@ -1026,7 +1006,7 @@
       fontWeight: 500
     }}
   >
-    AURIS Compliance Suite
+    Project Arunank
   </span>
 </p>
               </div>
@@ -1039,9 +1019,9 @@
             {/* STEP 0: Guidelines (NO API key box) */}
             {step===0&&(
               <div style={{animation:"fadeIn 0.3s ease"}}>
-                <div style={{backgroundColor:"#FDF8EC",border:"1px solid #E8D9A8",borderRadius:"14px",padding:"18px 20px",marginBottom:"20px"}}>
-                  <h3 style={{margin:"0 0 6px",fontSize:"15px",fontWeight:700,color:"#A88B47"}}>{"\u{1F44B} Welcome!"}</h3>
-                  <p style={{margin:0,fontSize:"13px",color:"#6B5824",lineHeight:1.6}}>Analyze your DPR against IRC codes, MoRTH specifications, and other regulatory guidelines. Select the applicable standards below and upload your DPR document.</p>
+                <div style={{backgroundColor:"#F0FDFA",border:"1px solid #99F6E4",borderRadius:"14px",padding:"18px 20px",marginBottom:"20px"}}>
+                  <h3 style={{margin:"0 0 6px",fontSize:"15px",fontWeight:700,color:"#0F766E"}}>{"\u{1F44B} Welcome!"}</h3>
+                  <p style={{margin:0,fontSize:"13px",color:"#115E59",lineHeight:1.6}}>Analyze your DPR against IRC codes, MoRTH specifications, and other regulatory guidelines. Select the applicable standards below and upload your DPR document.</p>
                 </div>
                 {apiStatus==="error"&&(
                   <div style={{backgroundColor:"#FEF2F2",border:"1px solid #FECACA",borderRadius:"12px",padding:"14px 18px",marginBottom:"16px",fontSize:"13px",color:"#DC2626"}}>
@@ -1052,15 +1032,15 @@
                 <div style={{backgroundColor:"#fff",borderRadius:"16px",padding:"22px",marginBottom:"16px",boxShadow:"0 1px 4px rgba(0,0,0,0.05)",border:"1px solid #E2E8F0"}}>
                   <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"16px"}}>
                     <span style={{fontSize:"20px"}}>{"\u{1F4CB}"}</span>
-                    <div style={{flex:1}}><h3 style={{margin:0,fontSize:"15px",fontWeight:700,color:"#0A1F44"}}>Select Guidelines</h3><p style={{margin:"2px 0 0",fontSize:"12px",color:"#94A3B8"}}>Choose standard codes or upload custom</p></div>
-                    <button onClick={selectAllGL} style={{fontSize:"12px",color:"#C9A961",background:"#FDF8EC",border:"1px solid #E8D9A8",cursor:"pointer",padding:"6px 12px",borderRadius:"6px",fontWeight:600}}>{selGL.length===STANDARD_GUIDELINES.length?"Deselect All":"Select All"}</button>
+                    <div style={{flex:1}}><h3 style={{margin:0,fontSize:"15px",fontWeight:700,color:"#1a1a2e"}}>Select Guidelines</h3><p style={{margin:"2px 0 0",fontSize:"12px",color:"#94A3B8"}}>Choose standard codes or upload custom</p></div>
+                    <button onClick={selectAllGL} style={{fontSize:"12px",color:"#0D9488",background:"#F0FDFA",border:"1px solid #99F6E4",cursor:"pointer",padding:"6px 12px",borderRadius:"6px",fontWeight:600}}>{selGL.length===STANDARD_GUIDELINES.length?"Deselect All":"Select All"}</button>
                   </div>
                   <GuidelineSelector selected={selGL} onToggle={toggleGL}/>
                   <div style={{marginTop:"20px",borderTop:"1px solid #F1F5F9",paddingTop:"16px"}}>
                     <FileUploadZone label="Upload Custom Guidelines (Optional)" description="Your own regulation documents" files={gFiles} onAddFiles={addGFiles} onRemoveFile={removeGFile} icon={"\u{1F4E4}"}/>
                   </div>
                 </div>
-                <button onClick={function(){if(glStatus!=="ok"){setError("Guidelines have not finished loading \u2014 see banner above.");return}if(canStep0){setError("");setStep(2)}else setError("Select at least one guideline.")}} disabled={glStatus!=="ok"} style={{width:"100%",padding:"16px",borderRadius:"12px",border:"none",background:(canStep0&&glStatus==="ok")?"linear-gradient(135deg,#C9A961,#A88B47)":"#CBD5E1",color:"#fff",fontSize:"16px",fontWeight:700,cursor:(canStep0&&glStatus==="ok")?"pointer":"not-allowed"}}>{glStatus==="loading"?"Loading guidelines...":glStatus==="error"?"Blocked \u2014 guideline files failed":"Next \u2192 Upload Your DPR"}</button>
+                <button onClick={function(){if(glStatus!=="ok"){setError("Guidelines have not finished loading \u2014 see banner above.");return}if(canStep0){setError("");setStep(2)}else setError("Select at least one guideline.")}} disabled={glStatus!=="ok"} style={{width:"100%",padding:"16px",borderRadius:"12px",border:"none",background:(canStep0&&glStatus==="ok")?"linear-gradient(135deg,#0D9488,#0F766E)":"#CBD5E1",color:"#fff",fontSize:"16px",fontWeight:700,cursor:(canStep0&&glStatus==="ok")?"pointer":"not-allowed"}}>{glStatus==="loading"?"Loading guidelines...":glStatus==="error"?"Blocked \u2014 guideline files failed":"Next \u2192 Upload Your DPR"}</button>
                 <DevCredit/>
               </div>
             )}
@@ -1076,8 +1056,8 @@
                   </div>
                 </div>
                 <div style={{backgroundColor:"#fff",borderRadius:"16px",padding:"22px",marginBottom:"16px",boxShadow:"0 1px 4px rgba(0,0,0,0.05)",border:"1px solid #E2E8F0"}}>
-                  <h3 style={{margin:"0 0 4px",fontSize:"15px",fontWeight:700,color:"#0A1F44"}}>{"\u{1F4CB} Report Header Details"}</h3>
-                  <p style={{margin:"0 0 14px",fontSize:"12px",color:"#94A3B8"}}>These appear on the AURIS-styled PDF, Word and printed reports.</p>
+                  <h3 style={{margin:"0 0 4px",fontSize:"15px",fontWeight:700,color:"#1a1a2e"}}>{"\u{1F4CB} Report Header Details"}</h3>
+                  <p style={{margin:"0 0 14px",fontSize:"12px",color:"#94A3B8"}}>These appear on the BRO-styled PDF, Word and printed reports.</p>
                   <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"12px"}}>
                     <div>
                       <label style={{display:"block",fontSize:"11px",fontWeight:700,color:"#475569",marginBottom:"4px",textTransform:"uppercase",letterSpacing:.4}}>DPR Project Name</label>
@@ -1102,12 +1082,12 @@
                   </div>
                 </div>
                 <div style={{backgroundColor:"#fff",borderRadius:"16px",padding:"22px",marginBottom:"16px",boxShadow:"0 1px 4px rgba(0,0,0,0.05)",border:"1px solid #E2E8F0"}}>
-                  <h3 style={{margin:"0 0 10px",fontSize:"15px",fontWeight:700,color:"#0A1F44"}}>{"\u{1F4AC} Additional Context"} <span style={{fontWeight:400,color:"#94A3B8"}}>(Optional)</span></h3>
+                  <h3 style={{margin:"0 0 10px",fontSize:"15px",fontWeight:700,color:"#1a1a2e"}}>{"\u{1F4AC} Additional Context"} <span style={{fontWeight:400,color:"#94A3B8"}}>(Optional)</span></h3>
                   <textarea value={ctx} onChange={function(e){setCtx(e.target.value)}} placeholder={"e.g. 4-lane NH project in Rajasthan, 120km\nFocus on pavement design and drainage\nCheck BOQ rates against DSR 2024"} style={{width:"100%",minHeight:"100px",padding:"14px 16px",borderRadius:"12px",border:"1.5px solid #E2E8F0",fontSize:"13px",fontFamily:"'Outfit',sans-serif",resize:"vertical",backgroundColor:"#FAFBFC",outline:"none",boxSizing:"border-box",lineHeight:1.6}}/>
                 </div>
                 <div style={{display:"flex",gap:"12px"}}>
                   <button onClick={function(){setStep(0)}} style={{padding:"14px 24px",borderRadius:"12px",border:"1.5px solid #E2E8F0",backgroundColor:"#fff",color:"#64748B",fontSize:"14px",fontWeight:600,cursor:"pointer"}}>{"\u2190 Back"}</button>
-                  <button onClick={function(){if(glStatus!=="ok"){setError("Guidelines failed to load — analysis is blocked. Return to the previous step to retry.");return}if(canStep2){setError("");analyze()}else setError("Upload at least one DPR document.")}} disabled={glStatus!=="ok"} style={{flex:1,padding:"16px",borderRadius:"12px",border:"none",background:(canStep2&&glStatus==="ok")?"linear-gradient(135deg,#C9A961,#A88B47)":"#CBD5E1",color:"#fff",fontSize:"16px",fontWeight:700,cursor:(canStep2&&glStatus==="ok")?"pointer":"not-allowed"}}>{glStatus==="error"?"Blocked — guideline files failed":"\u{1F50D} Analyze DPR Now"}</button>
+                  <button onClick={function(){if(glStatus!=="ok"){setError("Guidelines failed to load — analysis is blocked. Return to the previous step to retry.");return}if(canStep2){setError("");analyze()}else setError("Upload at least one DPR document.")}} disabled={glStatus!=="ok"} style={{flex:1,padding:"16px",borderRadius:"12px",border:"none",background:(canStep2&&glStatus==="ok")?"linear-gradient(135deg,#0D9488,#0F766E)":"#CBD5E1",color:"#fff",fontSize:"16px",fontWeight:700,cursor:(canStep2&&glStatus==="ok")?"pointer":"not-allowed"}}>{glStatus==="error"?"Blocked — guideline files failed":"\u{1F50D} Analyze DPR Now"}</button>
                 </div>
                 <DevCredit/>
               </div>
@@ -1117,10 +1097,10 @@
             {step===3&&loading&&(
               <div style={{textAlign:"center",padding:"60px 20px",backgroundColor:"#fff",borderRadius:"16px",border:"1px solid #E2E8F0",animation:"fadeIn 0.3s ease"}}>
                 <div style={{fontSize:"56px",marginBottom:"20px",animation:"pulse 2s infinite"}}>{"\u{1F50D}"}</div>
-                <h2 style={{margin:"0 0 8px",fontFamily:"'Playfair Display',serif",fontSize:"22px",color:"#0A1F44"}}>Analyzing Your DPR...</h2>
+                <h2 style={{margin:"0 0 8px",fontFamily:"'Playfair Display',serif",fontSize:"22px",color:"#1a1a2e"}}>Analyzing Your DPR...</h2>
                 <p style={{margin:"0 0 28px",fontSize:"14px",color:"#64748B"}}>{progress}</p>
                 <div style={{width:"100%",maxWidth:"400px",margin:"0 auto",height:"8px",backgroundColor:"#E2E8F0",borderRadius:"4px",overflow:"hidden"}}>
-                  <div style={{height:"100%",borderRadius:"4px",background:"linear-gradient(90deg,#C9A961,#D4B97A)",width:pct+"%",transition:"width 0.5s ease"}}/>
+                  <div style={{height:"100%",borderRadius:"4px",background:"linear-gradient(90deg,#0D9488,#14B8A6)",width:pct+"%",transition:"width 0.5s ease"}}/>
                 </div>
                 <p style={{margin:"10px 0 0",fontSize:"12px",color:"#94A3B8"}}>{pct+"%"}</p>
                 <div style={{marginTop:"30px",padding:"16px",backgroundColor:"#F8FAFC",borderRadius:"10px",display:"inline-block"}}>
@@ -1155,10 +1135,10 @@
             {/* HOW IT WORKS */}
             {step<3&&(
               <div style={{marginTop:"28px",padding:"18px 20px",borderRadius:"14px",backgroundColor:"#fff",border:"1px solid #E2E8F0"}}>
-                <h3 style={{margin:"0 0 12px",fontSize:"14px",fontWeight:700,color:"#0A1F44"}}>How It Works</h3>
+                <h3 style={{margin:"0 0 12px",fontSize:"14px",fontWeight:700,color:"#1a1a2e"}}>How It Works</h3>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:"16px"}}>
                   {[{icon:"\u{1F4CB}",t:"1. Select Guidelines",d:"Pick IRC codes & standards"},{icon:"\u{1F4D1}",t:"2. Upload DPR",d:"PDF, Excel, Word - any format"},{icon:"\u{1F50D}",t:"3. Compliance Check",d:"Cross-reference against codes"},{icon:"\u{1F4CA}",t:"4. Get Report",d:"Issues with fix recommendations"}].map(function(s){
-                    return <div key={s.t} style={{textAlign:"center"}}><div style={{fontSize:"28px",marginBottom:"6px"}}>{s.icon}</div><div style={{fontSize:"13px",fontWeight:700,color:"#0A1F44"}}>{s.t}</div><div style={{fontSize:"11px",color:"#94A3B8",marginTop:"2px"}}>{s.d}</div></div>;
+                    return <div key={s.t} style={{textAlign:"center"}}><div style={{fontSize:"28px",marginBottom:"6px"}}>{s.icon}</div><div style={{fontSize:"13px",fontWeight:700,color:"#1a1a2e"}}>{s.t}</div><div style={{fontSize:"11px",color:"#94A3B8",marginTop:"2px"}}>{s.d}</div></div>;
                   })}
                 </div>
               </div>
