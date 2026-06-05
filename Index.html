@@ -181,6 +181,70 @@
     }
     function esc(s){return(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
 
+    /* ============ INTERNAL CITATION VERIFIER (UI-only, never exported) ============ */
+    /* Same regex-grep used by verify-report.html, but run live against the
+       already-loaded ircCacheRef so the user can spot hallucinated / mis-
+       attributed clauses BEFORE deciding to send the report. Results are
+       held in React state, never written into parsed.deficiencies, and the
+       rendered badge / evidence row carry className="no-print" so they
+       are excluded from PDF, Word and Print View. */
+    var VERIFIER_FILES=[
+      {match:/^IRC[\s:]?37/i,           file:"IRC_37_2018_Extracted.md",                 label:"IRC:37"},
+      {match:/^IRC[\s:]?52/i,           file:"IRC_52_2019_Extraction.md",                label:"IRC:52"},
+      {match:/^IRC[\s:]?73/i,           file:"IRC_73_1980_Extraction.md",                label:"IRC:73"},
+      {match:/^IRC[\s:]?SP[\s:]?13/i,   file:"IRC_SP13_DPR_Analyzer_Extraction.md",      label:"IRC:SP:13"},
+      {match:/^IRC[\s:]?SP[\s:]?19/i,   file:"IRC_SP19_DPR_Analyzer_Extraction.md",      label:"IRC:SP:19"},
+      {match:/^IRC[\s:]?SP[\s:]?42/i,   file:"IRC_SP42_2014_DPR_Analyzer_Extraction.md", label:"IRC:SP:42"},
+      {match:/^IRC[\s:]?SP[\s:]?48/i,   file:"IRC_SP48_2023_DPR_Analyzer_Extraction.md", label:"IRC:SP:48"},
+      {match:/^IRC[\s:]?SP[\s:]?55/i,   file:"IRC_SP55_2014_DPR_Analyzer_Extraction.md", label:"IRC:SP:55"},
+      {match:/morth/i,                  file:"MoRTH_DPR_Reference_Extract.md",           label:"MoRTH 5th Rev"}
+    ];
+    function resolveRefFile(docName){
+      if(!docName) return null;
+      var s=String(docName).trim();
+      for(var i=0;i<VERIFIER_FILES.length;i++){if(VERIFIER_FILES[i].match.test(s)) return VERIFIER_FILES[i]}
+      return null;
+    }
+    function findClauseInText(text,clauseNum){
+      if(!text||!clauseNum) return null;
+      var esc=clauseNum.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+      var re=new RegExp("(?:^|[^0-9.])"+esc+"(?:[^0-9]|$)");
+      var lines=text.split("\n");
+      for(var k=0;k<lines.length;k++){
+        if(re.test(lines[k])){
+          var ex=lines[k].trim();
+          if(ex.length>200) ex=ex.substring(0,197)+"…";
+          return {line:k+1,excerpt:ex};
+        }
+      }
+      return null;
+    }
+    function verifyCitation(d,cache){
+      var dn=String((d&&d.documentName)||"").trim();
+      var cn=String((d&&d.clauseNumber)||"").trim();
+      if(!dn||/general observation/i.test(dn)||/^N\/?A$/i.test(cn)){return {status:"general"}}
+      var ref=resolveRefFile(dn);
+      if(!ref){return {status:"noref",evidence:dn+" is not in the loaded reference set — the prompt forbids this. Treat as hallucination."}}
+      var m=cn.match(/[0-9]+(?:\.[0-9A-Za-z]+)*/);
+      if(!m){return {status:"notfound",evidence:"Could not parse a clause number from '"+cn+"'."}}
+      var cnum=m[0];
+      var hit=findClauseInText(cache[ref.file],cnum);
+      if(hit){return {status:"verified",evidence:ref.label+" line "+hit.line+":  "+hit.excerpt}}
+      for(var i=0;i<VERIFIER_FILES.length;i++){
+        if(VERIFIER_FILES[i].file===ref.file) continue;
+        var h=findClauseInText(cache[VERIFIER_FILES[i].file],cnum);
+        if(h){return {status:"misattributed",evidence:"Clause "+cnum+" NOT in "+ref.label+", but found in "+VERIFIER_FILES[i].label+" line "+h.line+":  "+h.excerpt}}
+      }
+      return {status:"notfound",evidence:"Clause "+cnum+" not located in "+ref.label+" or any other loaded reference file."}
+    }
+    var VERIFY_BADGE={
+      verified:     {label:"✓ Verified",       bg:"#DCFCE7",fg:"#15803D",bd:"#86EFAC"},
+      misattributed:{label:"⚠ Misattributed",  bg:"#FEF3C7",fg:"#92400E",bd:"#FCD34D"},
+      notfound:     {label:"✗ Not found",      bg:"#FEE2E2",fg:"#991B1B",bd:"#FCA5A5"},
+      noref:        {label:"⛔ No ref loaded", bg:"#FECACA",fg:"#7F1D1D",bd:"#F87171"},
+      general:      {label:"⚪ General obs",    bg:"#F1F5F9",fg:"#64748B",bd:"#CBD5E1"}
+    };
+
     /* ============ PASSWORD GATE ============ */
     function PasswordGate(props){
       var ps=useState("");var pw=ps[0];var setPw=ps[1];
@@ -348,6 +412,7 @@
                 {item.complianceType&&<span style={{fontSize:"10px",fontWeight:700,letterSpacing:.4,padding:"3px 8px",borderRadius:"4px",backgroundColor:item.complianceType==="Design"?"#EEF2FF":"#FEF3C7",color:item.complianceType==="Design"?"#3730A3":"#92400E",border:"1px solid "+(item.complianceType==="Design"?"#C7D2FE":"#FDE68A"),textTransform:"uppercase"}}>{item.complianceType}</span>}
                 {item.category&&<span style={{fontSize:"11px",color:catCfg.color,fontWeight:600,backgroundColor:catCfg.color+"12",padding:"3px 8px",borderRadius:"4px"}}>{catCfg.emoji+" "+item.category}</span>}
                 {(item.documentName||item.clause)&&<span title={item.clauseSummary||""} style={{fontSize:"11px",color:item.documentName==="General Observation"?"#64748B":"#475569",fontFamily:"monospace",backgroundColor:item.documentName==="General Observation"?"#F1F5F9":"#EFF6FF",padding:"3px 8px",borderRadius:"4px",fontWeight:600,border:item.documentName==="General Observation"?"1px dashed #CBD5E1":"1px solid #BFDBFE"}}>{item.documentName==="General Observation"?"General Observation":((item.documentName||"")+(item.clauseNumber?" "+item.clauseNumber:"")||item.clause)}</span>}
+                {props.verification&&VERIFY_BADGE[props.verification.status]&&props.verification.status!=="general"&&<span className="no-print" title="Internal citation check — not in any export" style={{fontSize:"10px",fontWeight:700,padding:"3px 8px",borderRadius:"4px",backgroundColor:VERIFY_BADGE[props.verification.status].bg,color:VERIFY_BADGE[props.verification.status].fg,border:"1px solid "+VERIFY_BADGE[props.verification.status].bd,letterSpacing:.3}}>{VERIFY_BADGE[props.verification.status].label}</span>}
               </div>
               <h4 style={{margin:"4px 0 0",fontSize:"14px",fontWeight:600,color:"#1E293B",lineHeight:1.4}}>{item.title}</h4>
               {item.location&&<div style={{fontSize:"11px",color:"#94A3B8",marginTop:"3px"}}>{"\u{1F4CD} "+item.location}</div>}
@@ -372,6 +437,16 @@
               {item.recommendation&&(<div style={{backgroundColor:"#F0FDF4",border:"1px solid #BBF7D0",borderRadius:"10px",padding:"12px 16px",marginTop:"12px"}}><div style={{fontSize:"12px",fontWeight:700,color:"#166534",marginBottom:"4px"}}>{"\u{1F4A1} Recommendation"}</div><p style={{margin:0,color:"#15803D",fontSize:"13px"}}>{item.recommendation}</p></div>)}
               {item.correctiveAction&&(<div style={{backgroundColor:"#ECFEFF",border:"1px solid #A5F3FC",borderRadius:"10px",padding:"12px 16px",marginTop:"12px"}}><div style={{fontSize:"12px",fontWeight:700,color:"#155E75",marginBottom:"4px"}}>{"\u{1F527} Recommended Corrective Action"}</div><p style={{margin:0,color:"#0E7490",fontSize:"13px"}}>{item.correctiveAction}</p></div>)}
               {item.severityJustification&&(<div style={{backgroundColor:"#FFF7ED",border:"1px solid #FED7AA",borderRadius:"10px",padding:"12px 16px",marginTop:"12px"}}><div style={{fontSize:"12px",fontWeight:700,color:"#9A3412",marginBottom:"4px"}}>{"⚖️ Severity Justification"}</div><p style={{margin:0,color:"#B45309",fontSize:"13px"}}>{item.severityJustification}</p></div>)}
+              {props.verification&&props.verification.status!=="general"&&(
+                <div className="no-print" style={{backgroundColor:VERIFY_BADGE[props.verification.status].bg,border:"1.5px dashed "+VERIFY_BADGE[props.verification.status].bd,borderRadius:"10px",padding:"12px 16px",marginTop:"12px"}}>
+                  <div style={{fontSize:"11px",fontWeight:700,color:VERIFY_BADGE[props.verification.status].fg,marginBottom:"4px",textTransform:"uppercase",letterSpacing:.3,display:"flex",alignItems:"center",gap:"6px"}}>
+                    <span>{"\u{1F512}"}</span>
+                    <span>Internal Citation Check &nbsp;·&nbsp; {VERIFY_BADGE[props.verification.status].label}</span>
+                  </div>
+                  {props.verification.evidence&&<p style={{margin:"4px 0 0",color:VERIFY_BADGE[props.verification.status].fg,fontSize:"12px",fontFamily:"monospace",lineHeight:1.55,wordBreak:"break-word"}}>{props.verification.evidence}</p>}
+                  <p style={{margin:"6px 0 0",fontSize:"10px",color:"#94A3B8",fontStyle:"italic"}}>Visible only on screen — not included in PDF / Word / Print / JSON exports.</p>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -381,6 +456,8 @@
     /* ============ RESULTS DASHBOARD ============ */
     function ResultsDashboard(props){
       var results=props.results;
+      var verifications=props.verifications||{};
+      var vs1=useState(true),showVerify=vs1[0],setShowVerify=vs1[1];
       var s1=useState("all"),filterSev=s1[0],setFilterSev=s1[1];
       var s2=useState("all"),filterCat=s2[0],setFilterCat=s2[1];
       /* Podcast (audio overview) state */
@@ -729,6 +806,34 @@
               <div style={{marginTop:"10px",fontSize:"10px",color:"#A78BFA"}}>Auto-generated spoken overview for quick understanding. Always refer to the full written report for engineering decisions.</div>
             </div>
           )}
+          {/* Internal Citation Check — UI-only, never in exports */}
+          {Object.keys(verifications).length>0&&(
+            <div className="no-print" style={{marginBottom:"16px",border:"1.5px dashed #CBD5E1",borderRadius:"12px",background:"#FAFBFC",overflow:"hidden"}}>
+              <div onClick={function(){setShowVerify(!showVerify)}} style={{padding:"12px 16px",cursor:"pointer",display:"flex",alignItems:"center",gap:"10px",flexWrap:"wrap"}}>
+                <span style={{fontSize:"16px"}}>{"\u{1F512}"}</span>
+                <strong style={{fontSize:"13px",color:"#1a1a2e"}}>Internal Citation Check</strong>
+                <span style={{fontSize:"11px",color:"#94A3B8",fontStyle:"italic"}}>visible only here — never written to PDF / Word / Print / JSON</span>
+                {(function(){
+                  var n={verified:0,misattributed:0,notfound:0,noref:0,general:0};
+                  Object.keys(verifications).forEach(function(k){var s=verifications[k].status;if(n[s]!=null)n[s]++});
+                  var pills=[
+                    {l:"Verified",n:n.verified,bg:"#DCFCE7",fg:"#15803D"},
+                    {l:"Misattributed",n:n.misattributed,bg:"#FEF3C7",fg:"#92400E"},
+                    {l:"Not found",n:n.notfound,bg:"#FEE2E2",fg:"#991B1B"},
+                    {l:"No ref loaded",n:n.noref,bg:"#FECACA",fg:"#7F1D1D"},
+                    {l:"General obs",n:n.general,bg:"#F1F5F9",fg:"#64748B"}
+                  ];
+                  return <span style={{display:"inline-flex",gap:"6px",marginLeft:"auto",flexWrap:"wrap"}}>{pills.map(function(p,i){return <span key={i} style={{fontSize:"11px",fontWeight:700,padding:"3px 9px",borderRadius:"12px",background:p.bg,color:p.fg}}>{p.n+" "+p.l}</span>})}</span>;
+                })()}
+                <span style={{fontSize:"16px",color:"#CBD5E1",transform:showVerify?"rotate(180deg)":"rotate(0)"}}>{"▾"}</span>
+              </div>
+              {showVerify&&(
+                <div style={{padding:"4px 16px 14px",borderTop:"1px solid #E2E8F0",fontSize:"12px",color:"#475569",lineHeight:1.55}}>
+                  Each finding below carries a small coloured tag showing whether its cited clause was actually located in the loaded IRC / MoRTH MD files. Expand a card to see the matched source line. <strong>Misattributed</strong> means the clause is real but lives in a different code than the one cited; <strong>Not found</strong> and <strong>No ref loaded</strong> are hallucination signals. This check is your private quality gate — none of it appears in the report you download or print.
+                </div>
+              )}
+            </div>
+          )}
           {cats.length>0&&(<div className="no-print" style={{marginBottom:"16px"}}><div style={{fontSize:"12px",fontWeight:700,color:"#94A3B8",textTransform:"uppercase",marginBottom:"8px"}}>Filter by Category</div><div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}><button onClick={function(){setFilterCat("all")}} style={{padding:"6px 12px",borderRadius:"8px",fontSize:"12px",fontWeight:600,border:filterCat==="all"?"2px solid #0D9488":"1.5px solid #E2E8F0",backgroundColor:filterCat==="all"?"#F0FDFA":"#fff",color:filterCat==="all"?"#0D9488":"#64748B",cursor:"pointer"}}>{"All ("+total+")"}</button>{cats.map(function(cat){var cc=CATEGORY_CONFIG[cat]||{emoji:"\u{1F4CB}",color:"#64748B"};var n=defs.filter(function(d){return d.category===cat}).length;return <button key={cat} onClick={function(){setFilterCat(filterCat===cat?"all":cat)}} style={{padding:"6px 12px",borderRadius:"8px",fontSize:"12px",fontWeight:600,border:filterCat===cat?"2px solid "+cc.color:"1.5px solid #E2E8F0",backgroundColor:filterCat===cat?cc.color+"10":"#fff",color:filterCat===cat?cc.color:"#64748B",cursor:"pointer"}}>{cc.emoji+" "+cat+" ("+n+")"}</button>})}</div></div>)}
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"14px"}}>
             <h3 style={{margin:0,fontSize:"17px",fontWeight:700,color:"#1a1a2e"}}>{"Deficiencies ("+filtered.length+((filterSev!=="all"||filterCat!=="all")?" of "+total:"")+")"}</h3>
@@ -748,7 +853,7 @@
                   <strong style={{fontSize:"13px",color:sec.accent,textTransform:"uppercase",letterSpacing:.5}}>{sec.title}</strong>
                   <span style={{fontSize:"11px",color:"#475569",fontWeight:600}}>{"("+sec.items.length+" finding"+(sec.items.length!==1?"s":"")+")"}</span>
                 </div>
-                {sec.items.map(function(d,i){return <DeficiencyCard key={sec.key+"_"+i} item={d} index={start+i}/>})}
+                {sec.items.map(function(d,i){var absIdx=defs.indexOf(d);return <DeficiencyCard key={sec.key+"_"+i} item={d} index={start+i} verification={verifications[absIdx]}/>})}
               </div>);
             });
           })()}
@@ -791,6 +896,8 @@
       var s19=useState("idle"),glStatus=s19[0],setGlStatus=s19[1]; /* idle|loading|ok|error */
       var s20=useState([]),glLoaded=s20[0],setGlLoaded=s20[1];     /* [{file, version, bytes}] */
       var s21=useState([]),glFailedList=s21[0],setGlFailedList=s21[1];
+      /* Ver67: per-finding internal citation verification (UI-only) */
+      var s22=useState({}),verifications=s22[0],setVerifications=s22[1];
       var apiKeyRef=useRef("");
       var geminiKeyRef=useRef("");
       var msgIdx=useRef(0);
@@ -956,12 +1063,18 @@
           /* Ver67: attach report-header metadata so PDF/Word/Print can use it */
           parsed.reportHeader={projectName:projectName,roadNumber:roadNumber,officerName:officerName,officerDesignation:officerDesignation,reviewDate:reviewDate};
           parsed.loadedGuidelines=glLoaded.slice();
+          /* Ver67: run internal verification of every citation against the loaded MD cache (UI-only, never exported) */
+          var verifs={};
+          if(parsed.deficiencies){
+            parsed.deficiencies.forEach(function(d,i){verifs[i]=verifyCitation(d,ircCacheRef.current)});
+          }
+          setVerifications(verifs);
           setPct(100);setResults(parsed);setStep(4);
         }catch(err){setError(err.message);setStep(2)}
         finally{setLoading(false);setProgress("");setPct(0)}
       }
 
-      function resetAll(){setStep(0);setGFiles([]);setDFiles([]);setCtx("");setSelGL([]);setResults(null);setError("");setGlFetchFailed([]);setProjectName("");setRoadNumber("");setOfficerName("");setOfficerDesignation("");setReviewDate(todayISO())}
+      function resetAll(){setStep(0);setGFiles([]);setDFiles([]);setCtx("");setSelGL([]);setResults(null);setError("");setGlFetchFailed([]);setProjectName("");setRoadNumber("");setOfficerName("");setOfficerDesignation("");setReviewDate(todayISO());setVerifications({})}
       var canStep0=selGL.length>0||gFiles.length>0;
       var canStep2=dFiles.length>0;
       var STEPS=[{emoji:"\u{1F4CB}",label:"Guidelines"},{emoji:"\u{1F4D1}",label:"Upload DPR"},{emoji:"\u{1F50D}",label:"Analyze"},{emoji:"\u{1F4CA}",label:"Report"}];
@@ -1111,7 +1224,7 @@
             )}
 
             {/* STEP 4: Results */}
-            {step===4&&results&&(<div style={{animation:"fadeIn 0.3s ease"}}><ResultsDashboard results={results} onReset={resetAll} apiKey={apiKeyRef.current} geminiKey={geminiKeyRef.current}/></div>)}
+            {step===4&&results&&(<div style={{animation:"fadeIn 0.3s ease"}}><ResultsDashboard results={results} verifications={verifications} onReset={resetAll} apiKey={apiKeyRef.current} geminiKey={geminiKeyRef.current}/></div>)}
 
             {/* ERROR */}
             {error&&(
