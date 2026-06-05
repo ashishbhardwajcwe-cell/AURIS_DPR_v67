@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AURIS DPR Analyzer Pro Ver67 — Intelligent DPR Audit</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%230A1F44'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-family='Playfair Display, Georgia, serif' font-size='38' font-weight='800' fill='%23C9A961'%3EA%3C/text%3E%3C/svg%3E">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Outfit',sans-serif;background:#F8F5EE;min-height:100vh}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+    @keyframes dotGlow{0%,100%{box-shadow:0 0 4px rgba(34,197,94,0.4)}50%{box-shadow:0 0 12px rgba(34,197,94,0.8)}}
+    @keyframes pcSpin{to{transform:rotate(360deg)}}
+    .pc-spin{animation:pcSpin .8s linear infinite}
+    ::selection{background:#C9A961;color:#fff}
+    input:focus,textarea:focus{border-color:#C9A961!important;box-shadow:0 0 0 3px rgba(201,169,97,.1)!important}
+    button{font-family:'Outfit',sans-serif}
+    ::-webkit-scrollbar{width:6px}
+    ::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+    .dev-credit{text-align:center;font-size:11px;color:#94A3B8;padding:8px 0;letter-spacing:.3px}
+    @media print{
+      .no-print{display:none!important}
+      body{background:#fff!important}
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    var useState = React.useState;
+    var useRef = React.useRef;
+
+    /* ============ CONFIGURATION ============ */
+    var AURIS_TAGLINE = "Intelligent DPR Audit. IRC & MoRTH Certified Logic.";
+    var MAX_CHARS_PER_FILE = 150000;
+    var ACCEPT_STRING = ".pdf,.doc,.docx,.txt,.xlsx,.xls,.csv,.md";
+    var SITE_PASSWORD = "AURIS@DPR2026";
+
+    /* Analysis progress messages - NO mention of any AI/backend */
+    var PROGRESS_MSGS = [
+      "Parsing document structure...",
+      "Cross-referencing against IRC:37 - Flexible Pavement Design...",
+      "Checking compliance with IRC:73 - Geometric Design Standards...",
+      "Verifying MoRTH 5th Revision specifications...",
+      "Analyzing pavement design parameters and CBR values...",
+      "Checking drainage design against IRC:SP:42...",
+      "Reviewing bridge/culvert design per IRC:6 and IRC:112...",
+      "Verifying traffic survey data per IRC:SP:19...",
+      "Checking road safety provisions per IRC:SP:55...",
+      "Examining BOQ rates and cost estimation...",
+      "Validating environmental clearances and NOCs...",
+      "Cross-checking geometric alignment parameters...",
+      "Reviewing material specifications compliance...",
+      "Analyzing structural design calculations...",
+      "Compiling deficiency report..."
+    ];
+
+    var SEVERITY_CONFIG = {
+      critical:{bg:"#FEE2E2",border:"#DC2626",text:"#991B1B",badge:"#DC2626",emoji:"\u{1F534}",label:"Critical"},
+      major:{bg:"#FEF3C7",border:"#D97706",text:"#92400E",badge:"#D97706",emoji:"\u{1F7E1}",label:"Major"},
+      minor:{bg:"#DBEAFE",border:"#2563EB",text:"#1E40AF",badge:"#2563EB",emoji:"\u{1F535}",label:"Minor"},
+      observation:{bg:"#F3F4F6",border:"#6B7280",text:"#374151",badge:"#6B7280",emoji:"\u26AA",label:"Info"}
+    };
+    var CATEGORY_CONFIG = {
+      Design:{emoji:"\u{1F4D0}",color:"#7C3AED"},Pavement:{emoji:"\u{1F6E3}\uFE0F",color:"#2563EB"},
+      Drainage:{emoji:"\u{1F30A}",color:"#0891B2"},Safety:{emoji:"\u26A0\uFE0F",color:"#DC2626"},
+      Cost:{emoji:"\u{1F4B0}",color:"#D97706"},Survey:{emoji:"\u{1F4CF}",color:"#059669"},
+      Structural:{emoji:"\u{1F3D7}\uFE0F",color:"#9333EA"},Environmental:{emoji:"\u{1F33F}",color:"#16A34A"},
+      Land:{emoji:"\u{1F4CD}",color:"#EA580C"},Utilities:{emoji:"\u26A1",color:"#CA8A04"},
+      Schedule:{emoji:"\u{1F4C5}",color:"#4F46E5"},Quality:{emoji:"\u2705",color:"#C9A961"},
+      Documentation:{emoji:"\u{1F4C4}",color:"#64748B"}
+    };
+    var RISK_CONFIG = {
+      Low:{color:"#16A34A",bg:"#F0FDF4",border:"#BBF7D0"},
+      Moderate:{color:"#D97706",bg:"#FFFBEB",border:"#FDE68A"},
+      High:{color:"#DC2626",bg:"#FEF2F2",border:"#FECACA"},
+      Severe:{color:"#7F1D1D",bg:"#FEE2E2",border:"#FCA5A5"}
+    };
+    /* Ver67: IRC reference MD files that must load before analysis.
+       Points at the V67 main branch on GitHub. Once the AURIS_DPR_v67 repo
+       is merged to main, raw.githubusercontent will serve these files. */
+    var GITHUB_BASE_URL="https://raw.githubusercontent.com/ashishbhardwajcwe-cell/AURIS_DPR_v67/main/guidelines/";
+    var IRC_REF_FILES=[
+      {file:"IRC_37_2018_Extracted.md",            label:"IRC:37",     version:"2018"},
+      {file:"IRC_52_2019_Extraction.md",           label:"IRC:52",     version:"2019"},
+      {file:"IRC_73_1980_Extraction.md",           label:"IRC:73",     version:"1980"},
+      {file:"IRC_SP13_DPR_Analyzer_Extraction.md", label:"IRC:SP:13",  version:"—"},
+      {file:"IRC_SP19_DPR_Analyzer_Extraction.md", label:"IRC:SP:19",  version:"—"},
+      {file:"IRC_SP42_2014_DPR_Analyzer_Extraction.md",label:"IRC:SP:42",version:"2014"},
+      {file:"IRC_SP48_2023_DPR_Analyzer_Extraction.md",label:"IRC:SP:48",version:"2023"},
+      {file:"MoRTH_DPR_Reference_Extract.md",      label:"MoRTH 5th Revision", version:"5th Rev"}
+    ];
+
+    var STANDARD_GUIDELINES = [
+      {code:"IRC:37",title:"Design of Flexible Pavements",category:"Pavement",hasRef:true},
+      {code:"IRC:58",title:"Design of Rigid Pavements",category:"Pavement",hasRef:false},
+      {code:"IRC:SP:19",title:"Survey, Investigation & Preparation of Road Projects",category:"Survey",hasRef:true},
+      {code:"IRC:SP:84",title:"Specifications & Standards for Expressways",category:"Design",hasRef:false},
+      {code:"IRC:73",title:"Geometric Design Standards for Rural Highways",category:"Design",hasRef:true},
+      {code:"IRC:86",title:"Geometric Design Standards for Urban Roads",category:"Design",hasRef:false},
+      {code:"IRC:6",title:"Road Bridges - Loads & Stresses",category:"Bridge",hasRef:false},
+      {code:"IRC:112",title:"Code of Practice for Concrete Road Bridges",category:"Bridge",hasRef:false},
+      {code:"IRC:SP:13",title:"Guidelines for Design of Small Bridges & Culverts",category:"Bridge",hasRef:true},
+      {code:"MoRTH 5th Rev",title:"Specifications for Road & Bridge Works",category:"General",hasRef:true},
+      {code:"IRC:SP:42",title:"Road Drainage Guidelines",category:"Drainage",hasRef:true},
+      {code:"IRC:SP:55",title:"Road Safety Audit Guidelines",category:"Safety",hasRef:false},
+      {code:"BR Regulations",title:"Building & Road Regulations",category:"General",hasRef:false},
+      {code:"IS:1893",title:"Criteria for Earthquake Resistant Design",category:"Design",hasRef:false}
+    ];
+
+    /* ============ SESSION HELPERS ============ */
+    function getSession(){try{return window.sessionStorage.getItem("dpr_auth")==="1"}catch(e){return false}}
+    function setSession(){try{window.sessionStorage.setItem("dpr_auth","1")}catch(e){}}
+
+    /* ============ FILE HELPERS ============ */
+    function formatFileSize(bytes){
+      if(bytes<1024) return bytes+" B";
+      if(bytes<1048576) return (bytes/1024).toFixed(1)+" KB";
+      return (bytes/1048576).toFixed(1)+" MB";
+    }
+    function getFileTypeLabel(file){
+      var n=file.name.toLowerCase();
+      if(n.endsWith(".xlsx")||n.endsWith(".xls")) return "\u{1F4CA} Excel";
+      if(n.endsWith(".csv")) return "\u{1F4CA} CSV";
+      if(n.endsWith(".pdf")) return "\u{1F4D5} PDF";
+      if(n.endsWith(".doc")||n.endsWith(".docx")) return "\u{1F4D8} Word";
+      if(n.endsWith(".txt")) return "\u{1F4C4} Text";
+      return "\u{1F4CE} File";
+    }
+    function readFileAsBase64(file){return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(r.result.split(",")[1])};r.onerror=function(){rej(new Error("Read failed"))};r.readAsDataURL(file)})}
+    function readFileAsText(file){return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(r.result)};r.onerror=function(){rej(new Error("Read failed"))};r.readAsText(file)})}
+    function readExcelAsText(file){
+      return new Promise(function(resolve,reject){
+        var r=new FileReader();
+        r.onload=function(e){
+          try{
+            var data=new Uint8Array(e.target.result);
+            var wb=XLSX.read(data,{type:"array"});
+            var fullText="";var totalChars=0;
+            var maxPerSheet=Math.floor(MAX_CHARS_PER_FILE/Math.max(wb.SheetNames.length,1));
+            wb.SheetNames.forEach(function(sn){
+              if(totalChars>=MAX_CHARS_PER_FILE){fullText+="\n=== Sheet: "+sn+" === [SKIPPED]\n";return}
+              var sheet=wb.Sheets[sn];
+              var json=XLSX.utils.sheet_to_json(sheet,{header:1,defval:""});
+              var rows=json.filter(function(row){return row.some(function(c){return c!==""&&c!=null})});
+              var mc=0;rows.forEach(function(row){for(var c=row.length-1;c>=0;c--){if(row[c]!==""&&row[c]!=null){mc=Math.max(mc,c+1);break}}});
+              var tr=rows.map(function(row){return row.slice(0,mc).map(function(c){return c!=null?String(c).trim():""})});
+              var st="\n=== Sheet: "+sn+" ("+tr.length+" rows x "+mc+" cols) ===\n";
+              if(tr.length>0) st+=tr[0].join(",")+"\n";
+              if(tr.length>600){
+                for(var i=1;i<Math.min(501,tr.length);i++) st+=tr[i].join(",")+"\n";
+                st+="\n...[rows omitted]...\n\n";
+                for(var j=Math.max(tr.length-50,501);j<tr.length;j++) st+=tr[j].join(",")+"\n";
+              }else{for(var k=1;k<tr.length;k++) st+=tr[k].join(",")+"\n"}
+              if(st.length>maxPerSheet) st=st.substring(0,maxPerSheet)+"\n[...truncated]\n";
+              fullText+=st;totalChars+=st.length;
+            });
+            resolve(fullText);
+          }catch(err){reject(new Error("Excel error: "+err.message))}
+        };
+        r.onerror=function(){reject(new Error("Read failed"))};r.readAsArrayBuffer(file);
+      });
+    }
+    function processFile(file){
+      var ext=file.name.split(".").pop().toLowerCase();
+      if(ext==="xlsx"||ext==="xls"||ext==="csv"){return readExcelAsText(file).then(function(t){return{type:"text",text:"[FILE: "+file.name+"]\n"+t}})}
+      if(ext==="pdf"){return readFileAsBase64(file).then(function(b){return[{type:"document",source:{type:"base64",media_type:"application/pdf",data:b}},{type:"text",text:"[FILE: "+file.name+"]"}]})}
+      return readFileAsText(file).then(function(t){return{type:"text",text:"[FILE: "+file.name+"]\n"+t}});
+    }
+    function cleanJSON(raw){
+      var s=raw.replace(/```json|```/g,"").trim();
+      var m=s.match(/\{[\s\S]*\}/);if(!m) return null;s=m[0];
+      s=s.replace(/,\s*\]/g,"]").replace(/,\s*\}/g,"}");
+      s=s.replace(/[\x00-\x1F\x7F]/g,function(c){if(c==="\n"||c==="\r"||c==="\t") return " ";return ""});
+      s=s.replace(/\}\s*\{/g,"},{");s=s.replace(/,,+/g,",");return s;
+    }
+    function esc(s){return(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+
+    /* ============ AURIS BRAND MARK ============ */
+    /* Text wordmark used wherever the brand identity is shown (password gate,
+       app header, PDF/Word/Print report header). Replace with the actual AURIS
+       logo by swapping out for an <img src='assets/logo.png'/> at the same sizes. */
+    function AurisMark(props){
+      var size=props.size||50;
+      var onDark=!!props.onDark;
+      var fg=onDark?"#C9A961":"#0A1F44";
+      var padX=Math.round(size*0.34);
+      return(
+        <div style={{display:"inline-flex",alignItems:"center",justifyContent:"center",height:size,padding:"0 "+padX+"px",borderRadius:"8px",border:"1.5px solid "+fg,fontFamily:"'Playfair Display',serif",fontWeight:800,fontSize:Math.round(size*0.42),letterSpacing:"0.3em",color:fg,lineHeight:1,flexShrink:0,boxSizing:"border-box",background:onDark?"transparent":"#FFFFFF"}}>
+          <span style={{paddingLeft:"0.3em"}}>AURIS</span>
+        </div>
+      );
+    }
+
+    /* ============ PASSWORD GATE ============ */
+    function PasswordGate(props){
+      var ps=useState("");var pw=ps[0];var setPw=ps[1];
+      var es=useState("");var err=es[0];var setErr=es[1];
+      function check(){if(pw===SITE_PASSWORD){setSession();props.onPass()}else{setErr("Incorrect password. Access denied.")}}
+      function onKey(e){if(e.key==="Enter")check()}
+      return(
+        <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#0A1F44 0%,#142B5C 50%,#1E3A6E 100%)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <div style={{backgroundColor:"#fff",borderRadius:20,padding:"40px 36px",maxWidth:420,width:"90%",boxShadow:"0 20px 60px rgba(0,0,0,0.3)",textAlign:"center"}}>
+            <div style={{display:"flex",justifyContent:"center",marginBottom:16}}><AurisMark size={64}/></div>
+            <h1 style={{margin:"0 0 4px",fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:800,color:"#0A1F44"}}>AURIS DPR Analyzer Pro <span style={{fontSize:13,color:"#C9A961",fontWeight:700}}>Ver67</span></h1>
+            <p style={{margin:"0 0 4px",fontSize:12,color:"#A88B47",fontWeight:600,letterSpacing:".3px"}}>{AURIS_TAGLINE}</p>
+            <p style={{margin:"0 0 24px",fontSize:11,color:"#94A3B8"}}>Developed by Col Ashish Bhardwaj</p>
+            <div style={{backgroundColor:"#FFF7ED",border:"1px solid #FED7AA",borderRadius:10,padding:"12px 16px",marginBottom:20,textAlign:"left"}}>
+              <p style={{margin:0,fontSize:12,color:"#9A3412",lineHeight:1.5}}>{"\u{1F512} This application is password protected. Authorized personnel only."}</p>
+            </div>
+            <input type="password" placeholder="Enter access password" value={pw} onChange={function(e){setPw(e.target.value);setErr("")}} onKeyDown={onKey}
+              style={{width:"100%",padding:"14px 18px",borderRadius:12,border:"2px solid #E2E8F0",fontSize:15,outline:"none",textAlign:"center",letterSpacing:2,boxSizing:"border-box",marginBottom:12}}/>
+            <button onClick={check} style={{width:"100%",padding:14,borderRadius:12,border:"none",background:"linear-gradient(135deg,#C9A961,#A88B47)",color:"#fff",fontSize:16,fontWeight:700,cursor:"pointer"}}>{"Unlock \u{1F513}"}</button>
+            {err&&<p style={{margin:"12px 0 0",fontSize:13,color:"#DC2626",fontWeight:600}}>{err}</p>}
+          </div>
+        </div>
+      );
+    }
+
+    /* ============ SHARED COMPONENTS ============ */
+    function DevCredit(){return React.createElement("div",{className:"dev-credit",style:{marginTop:"12px",borderTop:"1px solid #E2E8F0",paddingTop:"10px"}},"Developed by Col Ashish Bhardwaj  ·  AURIS DPR Analyzer Pro")}
+
+    /* Ver67: Guideline-load status banner */
+    function GuidelineLoadStatus(props){
+      var status=props.status;var loaded=props.loaded||[];var failed=props.failed||[];
+      if(status==="loading"){
+        return(<div style={{backgroundColor:"#EFF6FF",border:"1px solid #BFDBFE",borderRadius:"12px",padding:"12px 16px",marginBottom:"16px",fontSize:"13px",color:"#1E3A8A",display:"flex",alignItems:"center",gap:"10px"}}>
+          <span style={{fontSize:"16px"}}>{"⏳"}</span>
+          <span>Loading IRC reference guidelines from repository...</span>
+        </div>);
+      }
+      if(status==="error"){
+        return(<div style={{backgroundColor:"#FEF2F2",border:"2px solid #FCA5A5",borderRadius:"12px",padding:"14px 18px",marginBottom:"16px"}}>
+          <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"8px"}}>
+            <span style={{fontSize:"18px"}}>{"\u{1F6D1}"}</span>
+            <strong style={{fontSize:"14px",color:"#991B1B"}}>Analysis blocked — guideline files failed to load</strong>
+          </div>
+          <div style={{fontSize:"12px",color:"#7F1D1D",marginBottom:"8px"}}>The following IRC reference document(s) could not be fetched. Analysis cannot start until every guideline loads successfully.</div>
+          <div style={{backgroundColor:"#fff",border:"1px solid #FECACA",borderRadius:"8px",padding:"8px 12px",marginBottom:"10px"}}>
+            {failed.map(function(f){return <div key={f.file} style={{fontSize:"12px",fontFamily:"monospace",color:"#7F1D1D",padding:"2px 0"}}>{"• "+f.label+" — "+f.file+" ("+f.reason+")"}</div>})}
+          </div>
+          {loaded.length>0&&<div style={{fontSize:"11px",color:"#64748B",marginBottom:"8px"}}>{loaded.length+" file"+(loaded.length!==1?"s":"")+" did load: "+loaded.map(function(l){return l.label}).join(", ")}</div>}
+          <button onClick={props.onRetry} style={{padding:"8px 16px",borderRadius:"8px",border:"none",background:"linear-gradient(135deg,#DC2626,#B91C1C)",color:"#fff",fontSize:"13px",fontWeight:700,cursor:"pointer"}}>{"↻ Retry loading guidelines"}</button>
+        </div>);
+      }
+      if(status==="ok"){
+        return(<div style={{backgroundColor:"#F0FDF4",border:"1px solid #BBF7D0",borderRadius:"12px",padding:"12px 16px",marginBottom:"16px"}}>
+          <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"6px"}}>
+            <span style={{fontSize:"16px"}}>{"✅"}</span>
+            <strong style={{fontSize:"13px",color:"#166534"}}>{"All "+loaded.length+" guideline document"+(loaded.length!==1?"s":"")+" loaded successfully"}</strong>
+          </div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
+            {loaded.map(function(l){return <span key={l.file} title={l.file+" — "+l.bytes+" chars"} style={{fontSize:"11px",fontFamily:"monospace",backgroundColor:"#fff",border:"1px solid #BBF7D0",borderRadius:"4px",padding:"2px 8px",color:"#15803D",fontWeight:600}}>{l.label+" ("+l.version+")"}</span>})}
+          </div>
+        </div>);
+      }
+      return null;
+    }
+
+    function StepIndicator(props){
+      return(
+        <div style={{display:"flex",alignItems:"center",justifyContent:"center",margin:"20px 0 28px",padding:"0 10px"}}>
+          {props.steps.map(function(step,i){
+            return(<div key={i} style={{display:"flex",alignItems:"center"}}>
+              <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"6px"}}>
+                <div style={{width:"36px",height:"36px",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"14px",fontWeight:700,backgroundColor:i<props.currentStep?"#10B981":i===props.currentStep?"#0A1F44":"#E2E8F0",color:i<=props.currentStep?"#fff":"#94A3B8",boxShadow:i===props.currentStep?"0 0 0 4px rgba(10,31,68,0.15)":"none"}}>{i<props.currentStep?"\u2713":step.emoji}</div>
+                <span style={{fontSize:"11px",fontWeight:i===props.currentStep?700:500,color:i<=props.currentStep?"#0A1F44":"#94A3B8",textAlign:"center",maxWidth:"70px"}}>{step.label}</span>
+              </div>
+              {i<props.steps.length-1&&<div style={{width:"40px",height:"2px",margin:"0 4px",backgroundColor:i<props.currentStep?"#10B981":"#E2E8F0",marginBottom:"22px"}}/>}
+            </div>);
+          })}
+        </div>
+      );
+    }
+
+    function FileUploadZone(props){
+      var inputRef=useRef(null);
+      var ds=useState(false),dragOver=ds[0],setDragOver=ds[1];
+      function openPicker(e){e.stopPropagation();if(inputRef.current){inputRef.current.value="";inputRef.current.click()}}
+      function onInput(e){var fl=e.target.files;if(fl&&fl.length>0){var a=[];for(var i=0;i<fl.length;i++)a.push(fl[i]);props.onAddFiles(a)}if(inputRef.current)inputRef.current.value=""}
+      function onDrop(e){e.preventDefault();e.stopPropagation();setDragOver(false);var fl=e.dataTransfer.files;if(fl&&fl.length>0){var a=[];for(var i=0;i<fl.length;i++)a.push(fl[i]);props.onAddFiles(a)}}
+      return(
+        <div style={{marginBottom:"16px"}}>
+          <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"8px"}}>
+            <span style={{fontSize:"22px"}}>{props.icon}</span>
+            <div style={{flex:1}}><h3 style={{margin:0,fontSize:"16px",fontWeight:700,color:"#0A1F44"}}>{props.label}</h3><p style={{margin:0,fontSize:"13px",color:"#64748B"}}>{props.description}</p></div>
+          </div>
+          <input ref={inputRef} type="file" multiple accept={ACCEPT_STRING} onChange={onInput} style={{display:"none"}}/>
+          <div onDragOver={function(e){e.preventDefault();setDragOver(true)}} onDragLeave={function(){setDragOver(false)}} onDrop={onDrop} onClick={openPicker}
+            style={{border:"2px dashed "+(dragOver?"#C9A961":"#CBD5E1"),borderRadius:"14px",padding:props.files.length>0?"20px":"36px 20px",textAlign:"center",cursor:"pointer",backgroundColor:dragOver?"#FDF8EC":"#FAFBFC"}}>
+            {props.files.length===0?(
+              <div><div style={{fontSize:"40px",marginBottom:"10px",opacity:.5}}>{"\u{1F4C2}"}</div>
+              <p style={{margin:0,fontSize:"15px",color:"#475569"}}><span style={{color:"#C9A961",fontWeight:700}}>Click to browse</span> or drag & drop</p>
+              <div style={{display:"flex",flexWrap:"wrap",justifyContent:"center",gap:"6px",marginTop:"12px"}}>
+                {["PDF","Excel","CSV","Word","Text"].map(function(f){return <span key={f} style={{padding:"3px 10px",borderRadius:"6px",fontSize:"11px",backgroundColor:"#F1F5F9",color:"#64748B"}}>{f}</span>})}
+              </div></div>
+            ):(
+              <div style={{display:"flex",flexDirection:"column",gap:"8px"}}>
+                {props.files.map(function(f,i){
+                  return(<div key={f.name+"_"+i} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",backgroundColor:"#fff",borderRadius:"10px",border:"1px solid #E2E8F0",textAlign:"left"}}>
+                    <div style={{overflow:"hidden",flex:1}}>
+                      <div style={{fontSize:"13px",fontWeight:600,color:"#334155",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.name}</div>
+                      <div style={{fontSize:"11px",color:"#94A3B8"}}>{getFileTypeLabel(f).split(" ").slice(1).join(" ")+" \u00B7 "+formatFileSize(f.size)}</div>
+                    </div>
+                    <button onClick={function(e){e.preventDefault();e.stopPropagation();props.onRemoveFile(i)}} style={{background:"#FEF2F2",border:"1px solid #FECACA",cursor:"pointer",color:"#EF4444",fontSize:"13px",padding:"4px 10px",borderRadius:"6px",fontWeight:600,marginLeft:"10px"}}>Remove</button>
+                  </div>);
+                })}
+                <div style={{fontSize:"13px",color:"#C9A961",fontWeight:600,marginTop:"4px"}}>+ Click to add more</div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    function GuidelineSelector(props){
+      var cats=[];var seen={};STANDARD_GUIDELINES.forEach(function(g){if(!seen[g.category]){seen[g.category]=true;cats.push(g.category)}});
+      return(
+        <div>
+          <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"12px",padding:"8px 12px",backgroundColor:"#F8FAFC",border:"1px solid #E2E8F0",borderRadius:"8px"}}>
+            <span style={{fontSize:"12px"}}>{"\u{1F6AB}"}</span>
+            <span style={{fontSize:"11px",color:"#475569"}}>Codes shown in grey have no backing reference document loaded in this version and are disabled. Hover for details.</span>
+          </div>
+          {cats.map(function(cat){
+            return(<div key={cat} style={{marginBottom:"14px"}}>
+              <div style={{fontSize:"12px",fontWeight:700,color:"#94A3B8",textTransform:"uppercase",letterSpacing:"0.8px",marginBottom:"8px"}}>{cat}</div>
+              <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
+                {STANDARD_GUIDELINES.filter(function(g){return g.category===cat}).map(function(g){
+                  var on=props.selected.indexOf(g.code)!==-1;
+                  var disabled=!g.hasRef;
+                  var tip=disabled?"Reference document not yet available":"Full reference document loaded";
+                  return(
+                    <button key={g.code} disabled={disabled} onClick={function(){if(!disabled)props.onToggle(g.code)}} title={tip} aria-disabled={disabled} style={{padding:"7px 14px",borderRadius:"8px",fontSize:"12px",border:disabled?"1.5px dashed #CBD5E1":(on?"2px solid #C9A961":"1.5px solid #E2E8F0"),backgroundColor:disabled?"#F1F5F9":(on?"#FDF8EC":"#fff"),color:disabled?"#94A3B8":(on?"#C9A961":"#475569"),cursor:disabled?"not-allowed":"pointer",fontWeight:600,position:"relative",opacity:disabled?0.7:1}}>
+                      {!disabled&&(on?"\u2713 ":"")}<strong>{g.code}</strong><span style={{fontWeight:400,opacity:.7,marginLeft:"4px",fontSize:"11px"}}>{" \u2014 "+g.title}</span>
+                      {disabled&&<span style={{display:"inline-block",marginLeft:"6px",backgroundColor:"#E2E8F0",border:"1px solid #CBD5E1",borderRadius:"4px",padding:"1px 5px",fontWeight:700,color:"#64748B",fontSize:"10px",verticalAlign:"middle"}}>{"No Ref"}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>);
+          })}
+        </div>
+      );
+    }
+
+    function SeverityBadge(props){var c=SEVERITY_CONFIG[props.severity]||SEVERITY_CONFIG.observation;return <span style={{display:"inline-flex",alignItems:"center",gap:"4px",padding:"3px 10px",borderRadius:"20px",fontSize:"11px",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.5px",backgroundColor:c.badge,color:"#fff"}}>{c.emoji+" "+c.label}</span>}
+
+    function DeficiencyCard(props){
+      var item=props.item;var index=props.index;
+      var es=useState(false);var expanded=es[0];var setExpanded=es[1];
+      var c=SEVERITY_CONFIG[item.severity]||SEVERITY_CONFIG.observation;
+      var catCfg=CATEGORY_CONFIG[item.category]||{emoji:"\u{1F4CB}",color:"#64748B"};
+      return(
+        <div style={{borderLeft:"4px solid "+c.border,borderRadius:"12px",backgroundColor:"#fff",marginBottom:"10px",overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,0.05)",border:"1px solid "+c.border+"20",borderLeftWidth:"4px",borderLeftColor:c.border}}>
+          <div onClick={function(){setExpanded(!expanded)}} style={{padding:"14px 18px",cursor:"pointer",display:"flex",alignItems:"flex-start",gap:"12px"}}>
+            <span style={{fontFamily:"monospace",fontSize:"12px",color:"#94A3B8",fontWeight:700,minWidth:"30px",paddingTop:"3px"}}>{"#"+String(index+1).padStart(2,"0")}</span>
+            <div style={{flex:1}}>
+              <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap",marginBottom:"5px"}}>
+                <SeverityBadge severity={item.severity}/>
+                {item.complianceType&&<span style={{fontSize:"10px",fontWeight:700,letterSpacing:.4,padding:"3px 8px",borderRadius:"4px",backgroundColor:item.complianceType==="Design"?"#EEF2FF":"#FEF3C7",color:item.complianceType==="Design"?"#3730A3":"#92400E",border:"1px solid "+(item.complianceType==="Design"?"#C7D2FE":"#FDE68A"),textTransform:"uppercase"}}>{item.complianceType}</span>}
+                {item.category&&<span style={{fontSize:"11px",color:catCfg.color,fontWeight:600,backgroundColor:catCfg.color+"12",padding:"3px 8px",borderRadius:"4px"}}>{catCfg.emoji+" "+item.category}</span>}
+                {(item.documentName||item.clause)&&<span title={item.clauseSummary||""} style={{fontSize:"11px",color:item.documentName==="General Observation"?"#64748B":"#475569",fontFamily:"monospace",backgroundColor:item.documentName==="General Observation"?"#F1F5F9":"#EFF6FF",padding:"3px 8px",borderRadius:"4px",fontWeight:600,border:item.documentName==="General Observation"?"1px dashed #CBD5E1":"1px solid #BFDBFE"}}>{item.documentName==="General Observation"?"General Observation":((item.documentName||"")+(item.clauseNumber?" "+item.clauseNumber:"")||item.clause)}</span>}
+              </div>
+              <h4 style={{margin:"4px 0 0",fontSize:"14px",fontWeight:600,color:"#1E293B",lineHeight:1.4}}>{item.title}</h4>
+              {item.location&&<div style={{fontSize:"11px",color:"#94A3B8",marginTop:"3px"}}>{"\u{1F4CD} "+item.location}</div>}
+            </div>
+            <span className="no-print" style={{fontSize:"20px",color:"#CBD5E1",transform:expanded?"rotate(180deg)":"rotate(0)",flexShrink:0,marginTop:"2px"}}>{"\u25BE"}</span>
+          </div>
+          {expanded&&(
+            <div style={{padding:"0 18px 16px 60px",fontSize:"13px",lineHeight:1.8,color:"#475569",borderTop:"1px solid #F1F5F9"}}>
+              {(item.documentName||item.clauseNumber||item.clauseSummary||item.failureReason)&&(
+                <div style={{backgroundColor:item.documentName==="General Observation"?"#F8FAFC":"#EFF6FF",border:"1px solid "+(item.documentName==="General Observation"?"#CBD5E1":"#BFDBFE"),borderRadius:"10px",padding:"12px 16px",marginTop:"12px"}}>
+                  <div style={{fontSize:"12px",fontWeight:700,color:item.documentName==="General Observation"?"#475569":"#1E3A8A",marginBottom:"6px",letterSpacing:.4}}>{"\u{1F4DA} Clause Citation"}</div>
+                  <div style={{display:"flex",flexWrap:"wrap",gap:"6px",marginBottom:"6px"}}>
+                    {item.documentName&&<span style={{fontFamily:"monospace",fontSize:"11px",backgroundColor:"#fff",border:"1px solid #CBD5E1",borderRadius:"4px",padding:"2px 8px",fontWeight:700,color:"#0F172A"}}>{item.documentName}</span>}
+                    {item.clauseNumber&&<span style={{fontFamily:"monospace",fontSize:"11px",backgroundColor:"#fff",border:"1px solid #CBD5E1",borderRadius:"4px",padding:"2px 8px",fontWeight:700,color:"#0F172A"}}>{item.clauseNumber}</span>}
+                  </div>
+                  {item.clauseSummary&&<div style={{fontSize:"12px",color:"#0F172A",marginBottom:"4px"}}><strong>What the clause requires: </strong>{item.clauseSummary}</div>}
+                  {item.failureReason&&<div style={{fontSize:"12px",color:"#7F1D1D"}}><strong>How the DPR fails it: </strong>{item.failureReason}</div>}
+                </div>
+              )}
+              {item.description&&<p style={{margin:"12px 0 0"}}>{item.description}</p>}
+              {item.impact&&(<div style={{backgroundColor:"#FEF2F2",border:"1px solid #FECACA",borderRadius:"10px",padding:"12px 16px",marginTop:"12px"}}><div style={{fontSize:"12px",fontWeight:700,color:"#991B1B",marginBottom:"4px"}}>{"\u26A1 Impact if Not Corrected"}</div><p style={{margin:0,color:"#DC2626",fontSize:"13px"}}>{item.impact}</p></div>)}
+              {item.recommendation&&(<div style={{backgroundColor:"#F0FDF4",border:"1px solid #BBF7D0",borderRadius:"10px",padding:"12px 16px",marginTop:"12px"}}><div style={{fontSize:"12px",fontWeight:700,color:"#166534",marginBottom:"4px"}}>{"\u{1F4A1} Recommendation"}</div><p style={{margin:0,color:"#15803D",fontSize:"13px"}}>{item.recommendation}</p></div>)}
+              {item.correctiveAction&&(<div style={{backgroundColor:"#ECFEFF",border:"1px solid #A5F3FC",borderRadius:"10px",padding:"12px 16px",marginTop:"12px"}}><div style={{fontSize:"12px",fontWeight:700,color:"#155E75",marginBottom:"4px"}}>{"\u{1F527} Recommended Corrective Action"}</div><p style={{margin:0,color:"#0E7490",fontSize:"13px"}}>{item.correctiveAction}</p></div>)}
+              {item.severityJustification&&(<div style={{backgroundColor:"#FFF7ED",border:"1px solid #FED7AA",borderRadius:"10px",padding:"12px 16px",marginTop:"12px"}}><div style={{fontSize:"12px",fontWeight:700,color:"#9A3412",marginBottom:"4px"}}>{"⚖️ Severity Justification"}</div><p style={{margin:0,color:"#B45309",fontSize:"13px"}}>{item.severityJustification}</p></div>)}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    /* ============ RESULTS DASHBOARD ============ */
+    function ResultsDashboard(props){
+      var results=props.results;
+      var s1=useState("all"),filterSev=s1[0],setFilterSev=s1[1];
+      var s2=useState("all"),filterCat=s2[0],setFilterCat=s2[1];
+      /* Podcast (audio overview) state */
+      var ps1=useState("idle"),pcStatus=ps1[0],setPcStatus=ps1[1]; /* idle|scripting|audio|ready|error */
+      var ps2=useState(""),pcMsg=ps2[0],setPcMsg=ps2[1];
+      var ps3=useState(""),pcUrl=ps3[0],setPcUrl=ps3[1];
+      var ps4=useState(""),pcErr=ps4[0],setPcErr=ps4[1];
+      var ps5=useState(null),pcScript=ps5[0],setPcScript=ps5[1];
+      var ps6=useState(false),pcShowText=ps6[0],setPcShowText=ps6[1];
+      if(!results) return null;
+      var defs=results.deficiencies||[];
+      var counts={};["critical","major","minor","observation"].forEach(function(k){counts[k]=defs.filter(function(d){return d.severity===k}).length});
+      var total=defs.length;
+      var cs={},cats=[];defs.forEach(function(d){if(d.category&&!cs[d.category]){cs[d.category]=true;cats.push(d.category)}});
+      var filtered=defs.filter(function(d){if(filterSev!=="all"&&d.severity!==filterSev) return false;if(filterCat!=="all"&&d.category!==filterCat) return false;return true});
+      var riskCfg=RISK_CONFIG[results.riskLevel]||RISK_CONFIG.Moderate;
+
+      /* Ver67: Shared HTML report builder. mode = 'pdf' | 'word' | 'print' */
+      function buildReportHTML(mode){
+        var defs=results.deficiencies||[];
+        var counts={};["critical","major","minor","observation"].forEach(function(k){counts[k]=defs.filter(function(d){return d.severity===k}).length});
+        var total=defs.length;var now=new Date();
+        var dateStr=now.toLocaleDateString("en-IN",{day:"numeric",month:"long",year:"numeric"});
+        var timeStr=now.toLocaleTimeString("en-IN",{hour:"numeric",minute:"2-digit",hour12:true});
+        var sevColors={critical:{bg:"#DC2626",text:"#fff"},major:{bg:"#D97706",text:"#fff"},minor:{bg:"#2563EB",text:"#fff"},observation:{bg:"#6B7280",text:"#fff"}};
+        var sevLabels={critical:"CRITICAL",major:"MAJOR",minor:"MINOR",observation:"INFO"};
+        var sevBorders={critical:"#DC2626",major:"#D97706",minor:"#2563EB",observation:"#6B7280"};
+        var scoreColor=(results.complianceScore>=70)?"#16A34A":(results.complianceScore>=40)?"#D97706":"#DC2626";
+        var hdr=results.reportHeader||{};
+        var reviewDateStr=hdr.reviewDate?(function(){try{var p=hdr.reviewDate.split("-");return p[2]+"-"+p[1]+"-"+p[0]}catch(e){return hdr.reviewDate}})():dateStr;
+        var loadedGL=results.loadedGuidelines||[];
+
+        function buildFindingBlock(d,i){
+          var sc=sevColors[d.severity]||sevColors.observation;var sl=sevLabels[d.severity]||"INFO";var sb=sevBorders[d.severity]||"#6B7280";
+          var ct=d.complianceType||"Design";
+          var ctBg=ct==="Design"?"#EEF2FF":"#FEF3C7";var ctTxt=ct==="Design"?"#3730A3":"#92400E";
+          var out="";
+          out+="<div style='border-left:5px solid "+sb+";background:#fff;border:1px solid #E2E8F0;border-radius:8px;padding:18px 20px;margin-bottom:14px;page-break-inside:avoid'>";
+          out+="<div style='display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap'>";
+          out+="<span style='font-family:monospace;font-size:13px;font-weight:700;color:#64748B'>#"+String(i+1).padStart(2,"0")+"</"+"span>";
+          out+="<span style='display:inline-block;padding:4px 10px;border-radius:4px;font-size:10px;font-weight:700;background:"+sc.bg+";color:"+sc.text+";-webkit-print-color-adjust:exact;print-color-adjust:exact'>"+sl+"</"+"span>";
+          out+="<span style='display:inline-block;padding:4px 10px;border-radius:4px;font-size:10px;font-weight:700;background:"+ctBg+";color:"+ctTxt+";text-transform:uppercase;-webkit-print-color-adjust:exact;print-color-adjust:exact'>"+esc(ct)+"</"+"span>";
+          if(d.category)out+="<span style='font-size:11px;color:#475569;background:#F1F5F9;padding:3px 10px;border-radius:4px;font-weight:600'>"+esc(d.category)+"</"+"span>";
+          if(d.documentName)out+="<span style='font-size:11px;color:#1E3A8A;background:#EFF6FF;padding:3px 10px;border-radius:4px;font-weight:700;font-family:monospace;-webkit-print-color-adjust:exact;print-color-adjust:exact'>"+esc(d.documentName)+(d.clauseNumber&&d.clauseNumber!=="N/A"?" "+esc(d.clauseNumber):"")+"</"+"span>";
+          out+="</"+"div>";
+          out+="<div style='font-size:14px;font-weight:700;color:#1E293B;margin-bottom:8px'>"+esc(d.title)+"</"+"div>";
+          if(d.clauseSummary)out+="<div style='background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;padding:10px 14px;margin-bottom:10px'><span style='font-size:11px;font-weight:700;color:#0A1F44;text-transform:uppercase'>Clause requires:</"+"span><div style='font-size:12px;color:#1E293B;margin-top:4px;line-height:1.6'>"+esc(d.clauseSummary)+"</"+"div></"+"div>";
+          if(d.failureReason)out+="<div style='background:#FEF2F2;border:1px solid #FECACA;border-radius:6px;padding:10px 14px;margin-bottom:10px;-webkit-print-color-adjust:exact;print-color-adjust:exact'><span style='font-size:11px;font-weight:700;color:#991B1B;text-transform:uppercase'>How DPR fails it:</"+"span><div style='font-size:12px;color:#7F1D1D;margin-top:4px;line-height:1.6'>"+esc(d.failureReason)+"</"+"div></"+"div>";
+          if(d.location)out+="<div style='margin-bottom:10px'><span style='font-size:11px;font-weight:700;color:#0A1F44;text-transform:uppercase'>DPR Location:</"+"span> <span style='font-family:monospace;color:#C9A961;font-weight:600;font-size:12px'>"+esc(d.location)+"</"+"span></"+"div>";
+          if(d.description)out+="<div style='margin-bottom:10px'><span style='font-size:11px;font-weight:700;color:#0A1F44;text-transform:uppercase'>Description:</"+"span><div style='font-size:12px;color:#475569;line-height:1.7;margin-top:4px'>"+esc(d.description)+"</"+"div></"+"div>";
+          if(d.impact)out+="<div style='background:#FEF2F2;border:1px solid #FECACA;border-radius:6px;padding:10px 14px;margin-bottom:10px;-webkit-print-color-adjust:exact;print-color-adjust:exact'><span style='font-size:11px;font-weight:700;color:#991B1B;text-transform:uppercase'>Impact if Not Corrected:</"+"span><div style='color:#DC2626;font-size:12px;margin-top:4px;line-height:1.6'>"+esc(d.impact)+"</"+"div></"+"div>";
+          if(d.correctiveAction)out+="<div style='background:#ECFEFF;border:1px solid #A5F3FC;border-radius:6px;padding:10px 14px;margin-bottom:10px;-webkit-print-color-adjust:exact;print-color-adjust:exact'><span style='font-size:11px;font-weight:700;color:#155E75;text-transform:uppercase'>Recommended Corrective Action:</"+"span><div style='color:#0E7490;font-size:12px;margin-top:4px;line-height:1.6'>"+esc(d.correctiveAction)+"</"+"div></"+"div>";
+          if(d.severityJustification)out+="<div style='background:#FFF7ED;border:1px solid #FED7AA;border-radius:6px;padding:10px 14px;margin-bottom:4px;-webkit-print-color-adjust:exact;print-color-adjust:exact'><span style='font-size:11px;font-weight:700;color:#9A3412;text-transform:uppercase'>Severity Justification:</"+"span><div style='color:#B45309;font-size:12px;margin-top:4px;line-height:1.6'>"+esc(d.severityJustification)+"</"+"div></"+"div>";
+          out+="</"+"div>";
+          return out;
+        }
+        function buildTable(rows){
+          var t="<table style='width:100%;border-collapse:collapse;table-layout:fixed;page-break-inside:auto'>";
+          t+="<thead style='display:table-header-group'><tr>";
+          var thS="background:#0A1F44;color:#fff;padding:10px 6px;font-size:10px;border:1px solid #0A1F44;-webkit-print-color-adjust:exact;print-color-adjust:exact";
+          t+="<th style='width:28px;text-align:center;"+thS+"'>#</th><th style='width:65px;text-align:center;"+thS+"'>Severity</th><th style='width:75px;text-align:center;"+thS+"'>Type</th><th style='width:130px;"+thS+"'>Issue</th><th style='width:110px;"+thS+"'>Document &amp; Clause</th><th style='width:140px;"+thS+"'>DPR Location</th><th style='"+thS+"'>How DPR Fails</th><th style='width:170px;"+thS+"'>Corrective Action</th>";
+          t+="</tr></thead><tbody>";
+          rows.forEach(function(d,i){
+            var sc2=sevColors[d.severity]||sevColors.observation;var sl2=sevLabels[d.severity]||"INFO";var bg2=(i%2===1)?"background:#F8FAFC;":"";
+            var ct2=d.complianceType||"Design";
+            t+="<tr style='page-break-inside:avoid'><td style='padding:8px 4px;border:1px solid #E2E8F0;text-align:center;font-weight:700;color:#64748B;vertical-align:top;"+bg2+"'>"+(i+1)+"</td>";
+            t+="<td style='padding:8px 4px;border:1px solid #E2E8F0;text-align:center;vertical-align:top;"+bg2+"'><span style='display:inline-block;padding:3px 8px;border-radius:4px;font-size:9px;font-weight:700;background:"+sc2.bg+";color:"+sc2.text+";-webkit-print-color-adjust:exact;print-color-adjust:exact'>"+sl2+"</span></td>";
+            t+="<td style='padding:8px 4px;border:1px solid #E2E8F0;text-align:center;font-size:10px;color:"+(ct2==="Design"?"#3730A3":"#92400E")+";font-weight:700;vertical-align:top;"+bg2+"'>"+esc(ct2)+"</td>";
+            t+="<td style='padding:8px 6px;border:1px solid #E2E8F0;font-weight:600;color:#1E293B;font-size:11px;vertical-align:top;"+bg2+"'>"+esc(d.title)+"</td>";
+            t+="<td style='padding:8px 6px;border:1px solid #E2E8F0;font-size:10px;color:#1E3A8A;font-family:monospace;font-weight:600;vertical-align:top;"+bg2+"'>"+esc((d.documentName||"")+(d.clauseNumber&&d.clauseNumber!=="N/A"?" "+d.clauseNumber:""))+"</td>";
+            t+="<td style='padding:8px 6px;border:1px solid #E2E8F0;font-size:10px;font-family:monospace;color:#C9A961;font-weight:600;vertical-align:top;"+bg2+"'>"+esc(d.location||"")+"</td>";
+            t+="<td style='padding:8px 6px;border:1px solid #E2E8F0;font-size:10px;color:#475569;line-height:1.4;vertical-align:top;"+bg2+"'>"+esc(d.failureReason||d.description||"")+"</td>";
+            t+="<td style='padding:8px 6px;border:1px solid #E2E8F0;font-size:10px;color:#0E7490;line-height:1.4;vertical-align:top;background:#ECFEFF;-webkit-print-color-adjust:exact;print-color-adjust:exact'>"+esc(d.correctiveAction||d.recommendation||"")+"</td></tr>";
+          });
+          t+="</tbody></table>";
+          return t;
+        }
+
+        var headerMetaRows="";
+        function metaCell(k,v){return "<td style='padding:6px 10px;border:1px solid #E2E8F0;font-size:11px;color:#1E293B;vertical-align:top'><div style='font-size:9px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px'>"+esc(k)+"</div>"+esc(v||"—")+"</td>"}
+        headerMetaRows+="<tr>"+metaCell("DPR Project Name",hdr.projectName)+metaCell("Road No. / Project Code",hdr.roadNumber)+"</tr>";
+        headerMetaRows+="<tr>"+metaCell("Reviewing Officer",(hdr.officerName||"")+(hdr.officerDesignation?", "+hdr.officerDesignation:""))+metaCell("Date of Review",reviewDateStr)+"</tr>";
+        headerMetaRows+="<tr>"+metaCell("Compliance Score",results.complianceScore+"%")+metaCell("Risk Level",results.riskLevel||"—")+"</tr>";
+
+        var pageSize=(mode==="word")?"A4":"A3 landscape";
+        var bodyPadding=(mode==="print")?"24px":"20px";
+
+        var h=[];
+        h.push("<!DOCTYPE html><html><head><meta charset='UTF-8'><title>DPR Analysis Report"+(hdr.projectName?" — "+esc(hdr.projectName):"")+"</title>");
+        h.push("<style>@page{size:"+pageSize+";margin:12mm}body{font-family:Arial,Helvetica,sans-serif;margin:0;padding:"+bodyPadding+";color:#1E293B;font-size:13px;-webkit-print-color-adjust:exact;print-color-adjust:exact}");
+        if(mode==="print"){h.push(".no-screen{display:none}.print-banner{position:sticky;top:0;background:#C9A961;color:#fff;padding:10px 18px;text-align:center;font-weight:700;font-size:13px;border-radius:6px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,.1)}@media print{.print-banner{display:none}}")}
+        h.push("</style></head><body>");
+
+        if(mode==="print"){h.push("<div class='print-banner'>🖨️ Print View — use your browser's Print menu (Ctrl/Cmd+P) to print or save as PDF.</div>")}
+
+        /* AURIS-styled report header */
+        h.push("<div style='background:linear-gradient(135deg,#0A1F44,#1E3A6E);color:#fff;padding:20px 30px;border-radius:8px;margin-bottom:18px;-webkit-print-color-adjust:exact;print-color-adjust:exact'>");
+        h.push("<div style='display:flex;align-items:center;gap:16px'>");
+        h.push("<div style='display:inline-flex;align-items:center;justify-content:center;height:55px;padding:0 19px;border-radius:8px;border:1.5px solid #C9A961;font-family:\"Playfair Display\",Georgia,serif;font-weight:800;font-size:24px;letter-spacing:0.3em;color:#C9A961;line-height:1;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact'><span style='padding-left:0.3em'>AURIS</span></div>");
+        h.push("<div style='flex:1'><div style='font-size:11px;color:#C9A961;letter-spacing:1px;text-transform:uppercase;font-weight:700'>"+esc(AURIS_TAGLINE)+"</div>");
+        h.push("<div style='font-size:24px;font-weight:800;margin-top:2px'>DPR Analysis Report <span style=\"font-size:13px;color:#C9A961;font-weight:700;letter-spacing:1px;margin-left:6px\">Ver67</span></div>");
+        h.push("<div style='font-size:12px;opacity:0.5;margin-top:4px'>Generated "+dateStr+" at "+timeStr+"</div></div>");
+        h.push("<div style='text-align:right;font-size:11px;line-height:1.6'><div style='opacity:0.4'>Developed by</div><div style='font-weight:700;font-size:13px;opacity:0.8'>Col Ashish Bhardwaj</div></div>");
+        h.push("</div></div>");
+
+        /* Project meta table */
+        h.push("<div style='background:#fff;border:2px solid #E2E8F0;border-radius:8px;padding:16px 20px;margin-bottom:18px'>");
+        h.push("<div style='font-size:15px;font-weight:700;margin-bottom:10px;color:#0A1F44'>Project & Review Details</div>");
+        h.push("<table style='width:100%;border-collapse:collapse;table-layout:fixed'>"+headerMetaRows+"</table>");
+        h.push("</div>");
+
+        /* Executive summary */
+        h.push("<div style='background:#fff;border:2px solid #E2E8F0;border-radius:8px;padding:20px 24px;margin-bottom:24px'>");
+        h.push("<div style='font-size:16px;font-weight:700;margin-bottom:10px;color:#0A1F44'>Executive Summary</div>");
+        h.push("<p style='margin:0 0 16px;line-height:1.7;color:#475569;font-size:13px'>"+esc(results.summary)+"</p>");
+        h.push("<div style='display:flex;flex-wrap:wrap;gap:10px'>");
+        h.push("<span style='display:inline-block;text-align:center;padding:8px 18px;border-radius:8px;border:2px solid #E2E8F0'><div style='font-size:26px;font-weight:800;color:"+scoreColor+"'>"+results.complianceScore+"%</div><div style='font-size:9px;text-transform:uppercase;color:#64748B;margin-top:4px;font-weight:700'>Compliance</div></span>");
+        if(results.riskLevel){var rc2=(results.riskLevel==="Severe"||results.riskLevel==="High")?"#DC2626":"#D97706";h.push("<span style='display:inline-block;text-align:center;padding:8px 18px;border-radius:8px;border:2px solid #E2E8F0'><div style='font-size:20px;font-weight:800;color:"+rc2+"'>"+esc(results.riskLevel)+"</div><div style='font-size:9px;text-transform:uppercase;color:#64748B;margin-top:4px;font-weight:700'>Risk Level</div></span>")}
+        [{n:counts.critical,l:"Critical",c:"#DC2626"},{n:counts.major,l:"Major",c:"#D97706"},{n:counts.minor,l:"Minor",c:"#2563EB"},{n:counts.observation,l:"Info",c:"#6B7280"},{n:total,l:"Total",c:"#C9A961"}].forEach(function(si){h.push("<span style='display:inline-block;text-align:center;padding:8px 18px;border-radius:8px;border:2px solid #E2E8F0'><div style='font-size:26px;font-weight:800;color:"+si.c+"'>"+si.n+"</div><div style='font-size:9px;text-transform:uppercase;color:#64748B;margin-top:4px;font-weight:700'>"+si.l+"</div></span>")});
+        h.push("</div></div>");
+
+        /* Part A: table */
+        h.push("<div style='font-size:17px;font-weight:700;color:#0A1F44;margin:28px 0 14px;padding-bottom:8px;border-bottom:2px solid #0A1F44'>Part A: Quick Reference Table</div>");
+        h.push(buildTable(defs));
+
+        /* Part B: split into Design + Documentation */
+        h.push("<div style='font-size:17px;font-weight:700;color:#0A1F44;margin:28px 0 14px;padding-bottom:8px;border-bottom:2px solid #0A1F44;page-break-before:always'>Part B: Detailed Findings and Recommendations</div>");
+        h.push("<p style='font-size:12px;color:#64748B;margin-bottom:16px;line-height:1.6'>Each finding includes the cited clause, how the DPR fails to meet it, recommended corrective action and a severity justification.</p>");
+        var design=defs.filter(function(d){return (d.complianceType||"Design")==="Design"});
+        var docs=defs.filter(function(d){return d.complianceType==="Documentation"});
+        var running=0;
+        if(design.length>0){
+          h.push("<div style='background:#EEF2FF;border-left:4px solid #3730A3;padding:8px 14px;margin:6px 0 10px;border-radius:4px;font-size:13px;font-weight:700;color:#3730A3;text-transform:uppercase;letter-spacing:.5px'>Design Compliance ("+design.length+")</div>");
+          design.forEach(function(d){h.push(buildFindingBlock(d,running++))});
+        }
+        if(docs.length>0){
+          h.push("<div style='background:#FEF3C7;border-left:4px solid #92400E;padding:8px 14px;margin:18px 0 10px;border-radius:4px;font-size:13px;font-weight:700;color:#92400E;text-transform:uppercase;letter-spacing:.5px'>Documentation Compliance ("+docs.length+")</div>");
+          docs.forEach(function(d){h.push(buildFindingBlock(d,running++))});
+        }
+
+        /* Footer with guideline versions */
+        h.push("<div style='margin-top:28px;padding:14px 18px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px'>");
+        h.push("<div style='font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px'>Guideline Versions Referenced</div>");
+        if(loadedGL.length>0){
+          h.push("<div style='font-size:11px;font-family:monospace;color:#0F172A;line-height:1.7'>"+loadedGL.map(function(l){return esc(l.label+" ("+l.version+")")}).join(" &nbsp;•&nbsp; ")+"</div>");
+        } else {
+          h.push("<div style='font-size:11px;color:#94A3B8'>No guideline version metadata captured.</div>");
+        }
+        h.push("</div>");
+
+        h.push("<div style='text-align:center;font-size:10px;color:#64748B;margin-top:18px;padding-top:12px;border-top:2px solid #0A1F44'>");
+        h.push("<strong>Generated by AURIS DPR Analyzer Pro Ver67</strong> &nbsp;·&nbsp; "+esc(AURIS_TAGLINE)+" &nbsp;·&nbsp; <strong>Developed by Col Ashish Bhardwaj</strong><br>");
+        h.push("<span style='font-size:9px;color:#94A3B8'>All findings should be verified by a qualified engineer.</span></div>");
+        h.push("</body></html>");
+        return h.join("");
+      }
+
+      function safeFileBase(){
+        var hdr=results.reportHeader||{};
+        var base=(hdr.projectName||hdr.roadNumber||"DPR_Analysis_Report").replace(/[^A-Za-z0-9._-]+/g,"_").replace(/_+/g,"_").replace(/^_|_$/g,"");
+        return base||"DPR_Analysis_Report";
+      }
+
+      function handleDownloadPDF(){
+        var w=window.open("","_blank");
+        if(!w){alert("Please allow popups so the PDF can be generated.");return}
+        w.document.write(buildReportHTML("pdf"));w.document.close();
+        setTimeout(function(){w.focus();w.print()},500);
+      }
+      function handleDownloadWord(){
+        var html=buildReportHTML("word");
+        /* Word recognises HTML packaged with these MSO headers */
+        var docHtml="<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'></head><body>"+html.replace(/^[\s\S]*?<body[^>]*>/i,"").replace(/<\/body>[\s\S]*$/i,"")+"</body></html>";
+        var blob=new Blob(["﻿"+docHtml],{type:"application/msword"});
+        var url=URL.createObjectURL(blob);
+        var a=document.createElement("a");a.href=url;a.download=safeFileBase()+".doc";document.body.appendChild(a);a.click();
+        setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url)},300);
+      }
+      function handlePrint(){
+        var w=window.open("","_blank");
+        if(!w){alert("Please allow popups to open the print view.");return}
+        w.document.write(buildReportHTML("print"));w.document.close();w.focus();
+      }
+
+      /* ===== Podcast / Audio Overview (NotebookLM-style two-host) ===== */
+      /* Two hosts. Voice names are Gemini prebuilt voices. */
+      var PC_SPEAKERS={A:{name:"Anjali",voice:"Kore"},B:{name:"Rohan",voice:"Puck"}};
+
+      function pcB64ToBytes(b64){var bin=atob(b64);var n=bin.length;var u=new Uint8Array(n);for(var i=0;i<n;i++)u[i]=bin.charCodeAt(i);return u}
+
+      function pcmToWavBlob(pcm,rate){
+        var numCh=1,bps=16,byteRate=rate*numCh*bps/8,blockAlign=numCh*bps/8,ds=pcm.length;
+        var buf=new ArrayBuffer(44+ds),v=new DataView(buf);
+        function wstr(o,s){for(var i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i))}
+        wstr(0,"RIFF");v.setUint32(4,36+ds,true);wstr(8,"WAVE");wstr(12,"fmt ");
+        v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,numCh,true);
+        v.setUint32(24,rate,true);v.setUint32(28,byteRate,true);v.setUint16(32,blockAlign,true);v.setUint16(34,bps,true);
+        wstr(36,"data");v.setUint32(40,ds,true);
+        var out=new Uint8Array(buf);out.set(pcm,44);
+        return new Blob([out],{type:"audio/wav"});
+      }
+
+      async function pcGenerateScript(){
+        var hdr=results.reportHeader||{};
+        var proj=hdr.projectName||"this road project";
+        var ordr={critical:0,major:1,minor:2,observation:3};
+        var defs=(results.deficiencies||[]).slice().sort(function(a,b){return (ordr[a.severity]==null?9:ordr[a.severity])-(ordr[b.severity]==null?9:ordr[b.severity])});
+        var top=defs.slice(0,10);
+        var lines=[];
+        lines.push("PROJECT: "+proj+(hdr.roadNumber?" ("+hdr.roadNumber+")":""));
+        lines.push("COMPLIANCE SCORE: "+results.complianceScore+"%");
+        lines.push("RISK LEVEL: "+(results.riskLevel||"Not stated"));
+        lines.push("OVERALL SUMMARY: "+(results.summary||""));
+        lines.push("");
+        lines.push("KEY DEFICIENCIES (most important first):");
+        top.forEach(function(d,i){
+          var cl=(d.documentName&&d.documentName!=="General Observation")?(" ["+d.documentName+" "+(d.clauseNumber||"")+"]"):"";
+          lines.push((i+1)+". ("+(d.severity||"")+") "+(d.title||"")+cl);
+          if(d.failureReason||d.description)lines.push("   Problem: "+String(d.failureReason||d.description).slice(0,300));
+          if(d.impact)lines.push("   Why it matters: "+String(d.impact).slice(0,220));
+          if(d.correctiveAction||d.recommendation)lines.push("   Fix: "+String(d.correctiveAction||d.recommendation).slice(0,220));
+        });
+        var digest=lines.join("\n");
+        var sys="You are a scriptwriter for an audio overview, in the style of a friendly two-host podcast (like NotebookLM Audio Overviews). Two Indian-English hosts discuss a technical engineering report so a non-specialist can follow it. Host A is \"Anjali\", a senior highway reviewing engineer who explains clearly. Host B is \"Rohan\", a curious co-host who asks the questions a layperson would ask. Keep it warm, natural and conversational with short turns, light back-and-forth, and the occasional brief reaction. Explain any jargon in plain words. Cover: what the project is, the overall compliance score and risk level and what they mean, the 4 to 6 most important problems in plain terms (what is wrong, why it matters for a high-altitude mountain road, and how to fix it), and a clear bottom-line takeaway. Aim for about 2.5 to 3.5 minutes of speech, roughly 16 to 22 short turns. Open with a quick welcome and close with a sign-off. Output STRICT JSON only, no markdown, no backticks, in exactly this shape: {\"title\":\"...\",\"turns\":[{\"speaker\":\"A\",\"text\":\"...\"}]} where speaker is exactly \"A\" for Anjali or \"B\" for Rohan. Do NOT put the speaker name inside the text.";
+        var body=JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:4000,system:sys,messages:[{role:"user",content:"Create the audio-overview podcast script from this DPR compliance analysis:\n\n"+digest}]});
+        var r=await fetch("/.netlify/functions/anthropic-proxy",{method:"POST",headers:{"Content-Type":"application/json"},body:body});
+        if(!r.ok){var e={};try{e=await r.json()}catch(x){}throw new Error((e.error&&e.error.message)||("Script generation failed ("+r.status+")"))}
+        var dd=await r.json();
+        var t=dd.content.map(function(b){return b.type==="text"?b.text:""}).join("");
+        var c=cleanJSON(t);if(!c)throw new Error("Could not read the generated script.");
+        var parsed=JSON.parse(c);
+        if(!parsed.turns||!parsed.turns.length)throw new Error("The generated script was empty.");
+        parsed.turns=parsed.turns.filter(function(x){return x&&x.text&&String(x.text).trim()}).map(function(x){return {speaker:(x.speaker==="B"?"B":"A"),text:String(x.text).trim()}});
+        return parsed;
+      }
+
+      async function pcSynthChunk(turns){
+        var present={};turns.forEach(function(t){present[t.speaker]=true});
+        var keys=Object.keys(present);
+        var speechConfig;
+        if(keys.length>=2){
+          speechConfig={multiSpeakerVoiceConfig:{speakerVoiceConfigs:keys.map(function(k){return {speaker:PC_SPEAKERS[k].name,voiceConfig:{prebuiltVoiceConfig:{voiceName:PC_SPEAKERS[k].voice}}}})}};
+        }else{
+          var only=keys[0]||"A";
+          speechConfig={voiceConfig:{prebuiltVoiceConfig:{voiceName:PC_SPEAKERS[only].voice}}};
+        }
+        var prompt="Read this podcast conversation aloud in a warm, friendly, natural tone:\n"+turns.map(function(t){return PC_SPEAKERS[t.speaker].name+": "+t.text}).join("\n");
+        var body=JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{responseModalities:["AUDIO"],speechConfig:speechConfig}});
+        var r=await fetch("/.netlify/functions/gemini-tts",{method:"POST",headers:{"Content-Type":"application/json"},body:body});
+        if(!r.ok){var e={};try{e=await r.json()}catch(x){}throw new Error((e.error&&e.error.message)||("Audio generation failed ("+r.status+")"))}
+        var dd=await r.json();
+        var cand=dd&&dd.candidates&&dd.candidates[0];
+        var part=cand&&cand.content&&cand.content.parts&&cand.content.parts[0];
+        var inl=part&&part.inlineData;
+        if(!inl||!inl.data)throw new Error("No audio was returned for one segment.");
+        var rate=24000;var m=/rate=(\d+)/.exec(inl.mimeType||"");if(m)rate=parseInt(m[1]);
+        return {pcm:pcB64ToBytes(inl.data),rate:rate};
+      }
+
+      async function generatePodcast(){
+        if(pcStatus==="scripting"||pcStatus==="audio")return;
+        if(!props.geminiKey){setPcErr("The podcast voice service is not configured. Add a GEMINI_API_KEY in the Netlify environment to enable audio overviews.");setPcStatus("error");return}
+        if(pcUrl){try{URL.revokeObjectURL(pcUrl)}catch(e){}}
+        setPcUrl("");setPcErr("");setPcShowText(false);
+        try{
+          setPcStatus("scripting");setPcMsg("Writing the podcast script...");
+          var script=await pcGenerateScript();
+          setPcScript(script);
+          setPcStatus("audio");
+          var chunks=[];var cur=[];var curLen=0;
+          script.turns.forEach(function(t){
+            var L=t.text.length+12;
+            if(curLen+L>1100&&cur.length>0){chunks.push(cur);cur=[];curLen=0}
+            cur.push(t);curLen+=L;
+          });
+          if(cur.length)chunks.push(cur);
+          var rate=24000;var parts=[];var totalLen=0;
+          for(var i=0;i<chunks.length;i++){
+            setPcMsg("Generating audio "+(i+1)+" of "+chunks.length+"...");
+            var seg=await pcSynthChunk(chunks[i]);
+            rate=seg.rate;parts.push(seg.pcm);totalLen+=seg.pcm.length;
+          }
+          var all=new Uint8Array(totalLen);var off=0;
+          parts.forEach(function(p){all.set(p,off);off+=p.length});
+          var u=URL.createObjectURL(pcmToWavBlob(all,rate));
+          setPcUrl(u);setPcMsg("");setPcStatus("ready");
+        }catch(err){setPcErr(err.message||"Podcast generation failed.");setPcStatus("error")}
+      }
+
+      return(
+        <div>
+          <div style={{background:"linear-gradient(135deg,#0A1F44 0%,#142B5C 50%,#1E3A6E 100%)",borderRadius:"18px",padding:"28px",marginBottom:"24px",color:"#fff",position:"relative",overflow:"hidden"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"16px",flexWrap:"wrap",gap:"10px"}}>
+              <div><h2 style={{margin:"0 0 4px",fontFamily:"'Playfair Display',serif",fontSize:"24px",fontWeight:800}}>{"\u2705 Analysis Complete"}</h2><p style={{margin:0,fontSize:"13px",opacity:.6}}>{total+" issue"+(total!==1?"s":"")+" found"}</p></div>
+              <div style={{display:"flex",gap:"8px",flexWrap:"wrap"}} className="no-print">
+                <button onClick={handleDownloadPDF} title="Open a print dialog \u2014 choose 'Save as PDF'" style={{backgroundColor:"#DC2626",border:"1px solid #DC2626",color:"#fff",padding:"8px 16px",borderRadius:"8px",cursor:"pointer",fontSize:"12px",fontWeight:700}}>{"\u{1F4C4} PDF"}</button>
+                <button onClick={handleDownloadWord} title="Download an editable .doc file" style={{backgroundColor:"#1D4ED8",border:"1px solid #1D4ED8",color:"#fff",padding:"8px 16px",borderRadius:"8px",cursor:"pointer",fontSize:"12px",fontWeight:700}}>{"\u{1F4DD} Word (.docx)"}</button>
+                <button onClick={handlePrint} title="Clean on-screen print view" style={{backgroundColor:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",padding:"8px 16px",borderRadius:"8px",cursor:"pointer",fontSize:"12px",fontWeight:600}}>{"\u{1F5A8}\uFE0F Print View"}</button>
+                <button onClick={generatePodcast} disabled={pcStatus==="scripting"||pcStatus==="audio"} title="Generate a short two-host audio overview of this report" style={{background:(pcStatus==="scripting"||pcStatus==="audio")?"#7C3AED":"linear-gradient(135deg,#7C3AED,#9333EA)",border:"1px solid #7C3AED",color:"#fff",padding:"8px 16px",borderRadius:"8px",cursor:(pcStatus==="scripting"||pcStatus==="audio")?"wait":"pointer",fontSize:"12px",fontWeight:700,opacity:(pcStatus==="scripting"||pcStatus==="audio")?0.8:1}}>{(pcStatus==="scripting"||pcStatus==="audio")?"\u{1F399}\uFE0F Generating\u2026":"\u{1F399}\uFE0F Podcast"}</button>
+                <button onClick={props.onReset} style={{backgroundColor:"rgba(255,255,255,0.1)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",padding:"8px 16px",borderRadius:"8px",cursor:"pointer",fontSize:"12px",fontWeight:600}}>{"\u{1F504} New Analysis"}</button>
+              </div>
+            </div>
+            <p style={{margin:"0 0 20px",fontSize:"14px",opacity:.8,lineHeight:1.6}}>{results.summary}</p>
+            <div style={{display:"flex",gap:"12px",alignItems:"stretch",flexWrap:"wrap"}}>
+              {results.complianceScore!==undefined&&(<div style={{backgroundColor:"rgba(255,255,255,0.08)",borderRadius:"14px",padding:"16px 24px",textAlign:"center",minWidth:"100px"}}><div style={{fontSize:"40px",fontWeight:800,lineHeight:1,color:results.complianceScore>=70?"#34D399":results.complianceScore>=40?"#FBBF24":"#F87171"}}>{results.complianceScore+"%"}</div><div style={{fontSize:"11px",opacity:.6,marginTop:"6px"}}>Compliance</div></div>)}
+              {results.riskLevel&&(<div style={{backgroundColor:"rgba(255,255,255,0.08)",borderRadius:"14px",padding:"16px 24px",textAlign:"center",minWidth:"100px",display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center"}}><div style={{fontSize:"16px",fontWeight:800,color:riskCfg.color,backgroundColor:riskCfg.bg,border:"1px solid "+riskCfg.border,padding:"8px 16px",borderRadius:"8px"}}>{results.riskLevel}</div><div style={{fontSize:"11px",opacity:.6,marginTop:"8px"}}>Risk Level</div></div>)}
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",flex:1}}>
+                {Object.keys(SEVERITY_CONFIG).map(function(key){var cfg=SEVERITY_CONFIG[key];return <div key={key} onClick={function(){setFilterSev(filterSev===key?"all":key)}} style={{backgroundColor:filterSev===key?"rgba(255,255,255,0.15)":"rgba(255,255,255,0.05)",borderRadius:"10px",padding:"10px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:"10px",border:filterSev===key?"1px solid rgba(255,255,255,0.3)":"1px solid transparent"}}><span style={{fontSize:"22px",fontWeight:800,color:cfg.badge}}>{counts[key]||0}</span><span style={{fontSize:"12px",opacity:.7}}>{cfg.emoji+" "+cfg.label}</span></div>})}
+              </div>
+            </div>
+          </div>
+          {pcStatus!=="idle"&&(
+            <div className="no-print" style={{marginBottom:"16px",borderRadius:"14px",border:"1px solid #DDD6FE",background:"linear-gradient(135deg,#F5F3FF,#FAF5FF)",padding:"18px 20px"}}>
+              <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"10px",flexWrap:"wrap"}}>
+                <span style={{fontSize:"20px"}}>{"\u{1F399}️"}</span>
+                <strong style={{fontSize:"15px",color:"#5B21B6"}}>Audio Overview</strong>
+                <span style={{fontSize:"11px",color:"#7C3AED",background:"#EDE9FE",padding:"2px 8px",borderRadius:"20px",fontWeight:600}}>Two-host podcast</span>
+              </div>
+              {pcStatus==="error"?(
+                <div style={{fontSize:"13px",color:"#B91C1C",background:"#FEF2F2",border:"1px solid #FECACA",borderRadius:"8px",padding:"10px 14px"}}>
+                  <strong>Couldn't generate the podcast.</strong>
+                  <div style={{marginTop:"4px",lineHeight:1.5}}>{pcErr}</div>
+                  <button onClick={generatePodcast} style={{marginTop:"8px",padding:"7px 14px",borderRadius:"8px",border:"none",background:"#7C3AED",color:"#fff",fontSize:"12px",fontWeight:700,cursor:"pointer"}}>{"↻ Try again"}</button>
+                </div>
+              ):(pcStatus==="ready"&&pcUrl)?(
+                <div>
+                  <audio controls src={pcUrl} style={{width:"100%",marginBottom:"10px"}}/>
+                  <div style={{display:"flex",gap:"8px",flexWrap:"wrap"}}>
+                    <a href={pcUrl} download={safeFileBase()+"_podcast.wav"} style={{textDecoration:"none",padding:"7px 14px",borderRadius:"8px",background:"#7C3AED",color:"#fff",fontSize:"12px",fontWeight:700}}>{"⬇️ Download audio"}</a>
+                    <button onClick={function(){setPcShowText(!pcShowText)}} style={{padding:"7px 14px",borderRadius:"8px",border:"1px solid #C4B5FD",background:"#fff",color:"#6D28D9",fontSize:"12px",fontWeight:700,cursor:"pointer"}}>{pcShowText?"Hide transcript":"Show transcript"}</button>
+                    <button onClick={generatePodcast} style={{padding:"7px 14px",borderRadius:"8px",border:"1px solid #C4B5FD",background:"#fff",color:"#6D28D9",fontSize:"12px",fontWeight:700,cursor:"pointer"}}>{"↻ Regenerate"}</button>
+                  </div>
+                  {pcShowText&&pcScript&&(
+                    <div style={{marginTop:"12px",background:"#fff",border:"1px solid #E9D5FF",borderRadius:"8px",padding:"12px 14px",maxHeight:"260px",overflowY:"auto"}}>
+                      {pcScript.title&&<div style={{fontWeight:700,fontSize:"13px",color:"#0A1F44",marginBottom:"8px"}}>{pcScript.title}</div>}
+                      {pcScript.turns.map(function(t,i){var nm=t.speaker==="B"?PC_SPEAKERS.B.name:PC_SPEAKERS.A.name;var col=t.speaker==="B"?"#9333EA":"#C9A961";return <div key={i} style={{marginBottom:"7px",fontSize:"12px",lineHeight:1.6}}><span style={{fontWeight:700,color:col}}>{nm+": "}</span><span style={{color:"#334155"}}>{t.text}</span></div>})}
+                    </div>
+                  )}
+                </div>
+              ):(
+                <div style={{display:"flex",alignItems:"center",gap:"10px",fontSize:"13px",color:"#6D28D9"}}>
+                  <span className="pc-spin" style={{display:"inline-block",width:"16px",height:"16px",border:"2px solid #DDD6FE",borderTopColor:"#7C3AED",borderRadius:"50%"}}/>
+                  <span>{pcMsg||"Working..."}</span>
+                </div>
+              )}
+              <div style={{marginTop:"10px",fontSize:"10px",color:"#A78BFA"}}>Auto-generated spoken overview for quick understanding. Always refer to the full written report for engineering decisions.</div>
+            </div>
+          )}
+          {cats.length>0&&(<div className="no-print" style={{marginBottom:"16px"}}><div style={{fontSize:"12px",fontWeight:700,color:"#94A3B8",textTransform:"uppercase",marginBottom:"8px"}}>Filter by Category</div><div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}><button onClick={function(){setFilterCat("all")}} style={{padding:"6px 12px",borderRadius:"8px",fontSize:"12px",fontWeight:600,border:filterCat==="all"?"2px solid #C9A961":"1.5px solid #E2E8F0",backgroundColor:filterCat==="all"?"#FDF8EC":"#fff",color:filterCat==="all"?"#C9A961":"#64748B",cursor:"pointer"}}>{"All ("+total+")"}</button>{cats.map(function(cat){var cc=CATEGORY_CONFIG[cat]||{emoji:"\u{1F4CB}",color:"#64748B"};var n=defs.filter(function(d){return d.category===cat}).length;return <button key={cat} onClick={function(){setFilterCat(filterCat===cat?"all":cat)}} style={{padding:"6px 12px",borderRadius:"8px",fontSize:"12px",fontWeight:600,border:filterCat===cat?"2px solid "+cc.color:"1.5px solid #E2E8F0",backgroundColor:filterCat===cat?cc.color+"10":"#fff",color:filterCat===cat?cc.color:"#64748B",cursor:"pointer"}}>{cc.emoji+" "+cat+" ("+n+")"}</button>})}</div></div>)}
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"14px"}}>
+            <h3 style={{margin:0,fontSize:"17px",fontWeight:700,color:"#0A1F44"}}>{"Deficiencies ("+filtered.length+((filterSev!=="all"||filterCat!=="all")?" of "+total:"")+")"}</h3>
+            {(filterSev!=="all"||filterCat!=="all")&&<button className="no-print" onClick={function(){setFilterSev("all");setFilterCat("all")}} style={{fontSize:"12px",color:"#C9A961",background:"none",border:"none",cursor:"pointer",fontWeight:600}}>{"\u2715 Clear filters"}</button>}
+          </div>
+          {filtered.length===0?<div style={{textAlign:"center",padding:"40px",color:"#94A3B8",backgroundColor:"#fff",borderRadius:"14px"}}>No issues for this filter.</div>:(function(){
+            var design=filtered.filter(function(d){return (d.complianceType||"Design")==="Design"});
+            var docs=filtered.filter(function(d){return d.complianceType==="Documentation"});
+            var sections=[];
+            if(design.length>0)sections.push({key:"design",title:"Design Compliance",accent:"#3730A3",bg:"#EEF2FF",items:design});
+            if(docs.length>0)sections.push({key:"docs",title:"Documentation Compliance",accent:"#92400E",bg:"#FEF3C7",items:docs});
+            var running=0;
+            return sections.map(function(sec){
+              var start=running;running+=sec.items.length;
+              return(<div key={sec.key} style={{marginBottom:"20px"}}>
+                <div style={{display:"flex",alignItems:"center",gap:"10px",margin:"0 0 10px",padding:"8px 14px",backgroundColor:sec.bg,borderLeft:"4px solid "+sec.accent,borderRadius:"4px"}}>
+                  <strong style={{fontSize:"13px",color:sec.accent,textTransform:"uppercase",letterSpacing:.5}}>{sec.title}</strong>
+                  <span style={{fontSize:"11px",color:"#475569",fontWeight:600}}>{"("+sec.items.length+" finding"+(sec.items.length!==1?"s":"")+")"}</span>
+                </div>
+                {sec.items.map(function(d,i){return <DeficiencyCard key={sec.key+"_"+i} item={d} index={start+i}/>})}
+              </div>);
+            });
+          })()}
+          <p className="no-print" style={{textAlign:"center",fontSize:"12px",color:"#94A3B8",marginTop:"16px"}}>{"\u{1F446} Click any deficiency to expand details and recommendations"}</p>
+          {results.loadedGuidelines&&results.loadedGuidelines.length>0&&(
+            <div style={{marginTop:"20px",padding:"14px 18px",backgroundColor:"#F8FAFC",border:"1px solid #E2E8F0",borderRadius:"10px"}}>
+              <div style={{fontSize:"11px",fontWeight:700,color:"#475569",textTransform:"uppercase",letterSpacing:.5,marginBottom:"6px"}}>Guideline versions referenced</div>
+              <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
+                {results.loadedGuidelines.map(function(l){return <span key={l.file} style={{fontSize:"11px",fontFamily:"monospace",backgroundColor:"#fff",border:"1px solid #CBD5E1",borderRadius:"4px",padding:"2px 8px",color:"#0F172A",fontWeight:600}}>{l.label+" ("+l.version+")"}</span>})}
+              </div>
+            </div>
+          )}
+          <DevCredit/>
+        </div>
+      );
+    }
+
+    /* ============ MAIN APP ============ */
+    function DPRAnalyzer(){
+      var s0=useState(0),step=s0[0],setStep=s0[1];
+      var s3=useState([]),gFiles=s3[0],setGFiles=s3[1];
+      var s4=useState([]),dFiles=s4[0],setDFiles=s4[1];
+      var s5=useState(""),ctx=s5[0],setCtx=s5[1];
+      var s6=useState([]),selGL=s6[0],setSelGL=s6[1];
+      var s7=useState(null),results=s7[0],setResults=s7[1];
+      var s8=useState(false),loading=s8[0],setLoading=s8[1];
+      var s9=useState(""),error=s9[0],setError=s9[1];
+      var s10=useState(""),progress=s10[0],setProgress=s10[1];
+      var s11=useState(0),pct=s11[0],setPct=s11[1];
+      var s12=useState("checking"),apiStatus=s12[0],setApiStatus=s12[1];
+      var s13=useState([]),glFetchFailed=s13[0],setGlFetchFailed=s13[1];
+      /* Ver67: report header inputs */
+      function todayISO(){var d=new Date();var m=String(d.getMonth()+1).padStart(2,"0");var dd=String(d.getDate()).padStart(2,"0");return d.getFullYear()+"-"+m+"-"+dd}
+      var s14=useState(""),projectName=s14[0],setProjectName=s14[1];
+      var s15=useState(""),roadNumber=s15[0],setRoadNumber=s15[1];
+      var s16=useState(""),officerName=s16[0],setOfficerName=s16[1];
+      var s17=useState(""),officerDesignation=s17[0],setOfficerDesignation=s17[1];
+      var s18=useState(todayISO()),reviewDate=s18[0],setReviewDate=s18[1];
+      /* Ver67: guideline-load status (Step 4) */
+      var s19=useState("idle"),glStatus=s19[0],setGlStatus=s19[1]; /* idle|loading|ok|error */
+      var s20=useState([]),glLoaded=s20[0],setGlLoaded=s20[1];     /* [{file, version, bytes}] */
+      var s21=useState([]),glFailedList=s21[0],setGlFailedList=s21[1];
+      var apiKeyRef=useRef("");
+      var geminiKeyRef=useRef("");
+      var msgIdx=useRef(0);
+      var ircCacheRef=useRef({}); /* Ver67: file -> text */
+
+      /* Fetch API key from serverless function on mount */
+      React.useEffect(function(){
+        fetch("/.netlify/functions/get-config",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"})
+        .then(function(r){return r.json()})
+        .then(function(d){
+          if(d.status==="ok"&&d.key){apiKeyRef.current=d.key;if(d.gemini)geminiKeyRef.current=d.gemini;setApiStatus("ready")}
+          else{setApiStatus("error")}
+        })
+        .catch(function(){setApiStatus("error")});
+      },[]);
+
+      /* Ver67: Preflight load of IRC reference files on mount */
+      function loadGuidelines(){
+        setGlStatus("loading");setGlLoaded([]);setGlFailedList([]);
+        var loaded=[];var failed=[];
+        Promise.all(IRC_REF_FILES.map(function(entry){
+          return fetch(GITHUB_BASE_URL+entry.file).then(function(r){
+            if(!r.ok)throw new Error("HTTP "+r.status);
+            return r.text().then(function(t){
+              ircCacheRef.current[entry.file]=t;
+              loaded.push({file:entry.file,label:entry.label,version:entry.version,bytes:t.length});
+            });
+          }).catch(function(e){
+            failed.push({file:entry.file,label:entry.label,reason:e.message||"network error"});
+          });
+        })).then(function(){
+          /* keep ordering stable for display */
+          var orderIndex={};IRC_REF_FILES.forEach(function(x,i){orderIndex[x.file]=i});
+          loaded.sort(function(a,b){return orderIndex[a.file]-orderIndex[b.file]});
+          failed.sort(function(a,b){return orderIndex[a.file]-orderIndex[b.file]});
+          setGlLoaded(loaded);setGlFailedList(failed);
+          setGlStatus(failed.length===0?"ok":"error");
+        });
+      }
+      React.useEffect(function(){loadGuidelines()},[]);
+
+      function toggleGL(code){setSelGL(function(p){return p.indexOf(code)!==-1?p.filter(function(x){return x!==code}):p.concat([code])})}
+      function selectAllGL(){setSelGL(function(p){return p.length===STANDARD_GUIDELINES.length?[]:STANDARD_GUIDELINES.map(function(g){return g.code})})}
+      function addGFiles(a){setGFiles(function(p){return p.concat(a)})}
+      function removeGFile(i){setGFiles(function(p){return p.filter(function(_,j){return j!==i})})}
+      function addDFiles(a){setDFiles(function(p){return p.concat(a)})}
+      function removeDFile(i){setDFiles(function(p){return p.filter(function(_,j){return j!==i})})}
+
+      async function analyze(){
+        if(dFiles.length===0){setError("Please upload at least one DPR document.");return}
+        if(selGL.length===0&&gFiles.length===0){setError("Please select at least one guideline.");return}
+        if(glStatus!=="ok"){setError("Cannot start analysis — one or more IRC reference files failed to load. Use the red banner to retry.");return}
+        setLoading(true);setError("");setStep(3);setProgress("Preparing documents...");setPct(5);msgIdx.current=0;
+        try{
+          var blocks=[];var tot=gFiles.length+dFiles.length;var done=0;
+
+          /* Ver67: IRC references already preloaded in ircCacheRef */
+          setProgress("Attaching IRC reference codes...");setPct(8);
+          IRC_REF_FILES.forEach(function(entry){
+            var txt=ircCacheRef.current[entry.file];
+            if(txt){blocks.push({type:"text",text:"[IRC REFERENCE: "+entry.file+"]\n"+txt})}
+          });
+          for(var gi=0;gi<gFiles.length;gi++){
+            setProgress("Reading: "+gFiles[gi].name+"...");setPct(5+(done/tot)*40);
+            var gr=await processFile(gFiles[gi]);if(Array.isArray(gr))gr.forEach(function(x){blocks.push(x)});else blocks.push(gr);done++;
+          }
+          for(var di=0;di<dFiles.length;di++){
+            setProgress("Reading: "+dFiles[di].name+"...");setPct(5+(done/tot)*40);
+            var dr=await processFile(dFiles[di]);if(Array.isArray(dr))dr.forEach(function(x){blocks.push(x)});else blocks.push(dr);done++;
+          }
+          var gt="";
+          if(selGL.length>0){gt="\n\nStandard guidelines to check against:\n"+selGL.map(function(g){var info=STANDARD_GUIDELINES.find(function(sg){return sg.code===g});return"- "+g+": "+(info?info.title:"")}).join("\n")}
+          var hdr="";
+          if(projectName||roadNumber||officerName||officerDesignation){
+            hdr="\n\nReport header (use these names/IDs when referring to the project):";
+            if(projectName)hdr+="\n- Project Name: "+projectName;
+            if(roadNumber)hdr+="\n- Road Number / Project Code: "+roadNumber;
+            if(officerName)hdr+="\n- Reviewing Officer: "+officerName+(officerDesignation?", "+officerDesignation:"");
+            if(reviewDate)hdr+="\n- Date of Review: "+reviewDate;
+          }
+          var ct=(ctx.trim()?"\n\nAdditional context: "+ctx:"")+hdr;
+          blocks.push({type:"text",text:"Analyze the DPR document(s) above against guidelines and regulatory requirements."+gt+ct+"\n\nPerform a professional DPR compliance audit specifically for a BRO hill/mountain road project. PRIORITY CODES FOR BRO: IRC:SP:48 (Hill Road Design — check hairpin bends, formation width, hill cutting, retaining walls, side drains), IRC:52 (Mountain Roads), IRC:73 (Geometric Design — gradients, curves, sight distance), IRC:SP:13 (Culverts and minor bridges), IRC:SP:42 (Drainage — especially cross drainage in hill terrain, catch water drains, scuppers). Check all of: traffic data, geometric design, pavement, drainage, safety, environmental, land acquisition, cost estimation, material specs, bridges/culverts, survey, drawings, utilities, schedule, quality plan.\n\nCLAUSE-LEVEL CITATION RULES (MANDATORY — VER63):\nEvery deficiency MUST be backed by a specific clause from a loaded [IRC REFERENCE: filename] document. For every finding you MUST populate ALL of these fields:\n  - documentName: the exact document code, e.g. \"IRC:SP:42\", \"IRC:73\", \"IRC:SP:48\", \"MoRTH 5th Revision\". Take this from the [IRC REFERENCE: filename] header of the document you pulled the clause from.\n  - clauseNumber: the exact clause/section/table number as printed in that document, e.g. \"Clause 4.3.2\", \"Section 5.4\", \"Table 3.1\". DO NOT invent or paraphrase. Quote it verbatim.\n  - clauseSummary: a SINGLE concise line (max 30 words) stating what that specific clause requires.\n  - failureReason: a precise statement of HOW the DPR fails to meet this specific clause — quote the value/text from the DPR and contrast it with the clause's requirement.\nIf — and only if — the relevant clause cannot be located inside any [IRC REFERENCE: filename] block above, you MUST set:\n  - documentName: \"General Observation\"\n  - clauseNumber: \"N/A\"\n  - clauseSummary: \"General Observation — clause reference not available\"\n  - failureReason: still describe how the DPR is deficient on this point.\nNEVER fabricate a clause number. NEVER cite a code whose [IRC REFERENCE] block is not present above. If you are unsure, fall back to the General Observation form.\n\nThe legacy 'clause' field MUST still be populated for backwards compatibility — set it to documentName + \" \" + clauseNumber (e.g. \"IRC:SP:42 Clause 4.3.2\"), or \"General Observation\" when the clause is unavailable.\n\nCRITICAL: Output ONLY valid JSON. No markdown. No backticks. No text before or after. No trailing commas. Ensure every array and object is properly closed.\n\nThe output report will be used as a working guideline for engineers to carry out amendments in the DPR. So provide DETAILED and SPECIFIC information in every field.\n\n{\"summary\":\"4-5 sentence overview of DPR quality, key gaps, and overall compliance assessment\",\"complianceScore\":<0-100>,\"riskLevel\":\"Low|Moderate|High|Severe\",\"deficiencies\":[{\"severity\":\"critical|major|minor|observation\",\"complianceType\":\"Design|Documentation\",\"category\":\"Design|Pavement|Drainage|Safety|Cost|Survey|Structural|Environmental|Land|Utilities|Schedule|Quality|Documentation\",\"title\":\"Clear issue title\",\"documentName\":\"IRC:SP:42 | IRC:73 | MoRTH 5th Revision | ... | General Observation\",\"clauseNumber\":\"Clause 4.3.2 | Section 5.4 | Table 3.1 | N/A\",\"clauseSummary\":\"One-line summary of what that clause requires, or 'General Observation — clause reference not available'\",\"failureReason\":\"How the DPR fails to meet this specific clause — quote DPR values vs clause requirement\",\"clause\":\"documentName + space + clauseNumber for backwards compat\",\"location\":\"Exact DPR location - sheet name, section, page, table, row number, chainage etc.\",\"description\":\"Detailed technical explanation of what is wrong, what is missing, or what does not comply. Include specific values found vs required values where applicable. 2-3 sentences.\",\"impact\":\"Detailed consequence if this deficiency is not corrected - structural risk, cost overrun, safety hazard, project delay, regulatory rejection etc. 2-3 sentences.\",\"recommendation\":\"Step-by-step actionable fix with specific standards to follow, calculations to perform, data to collect, or sections to add. 2-3 sentences.\",\"correctiveAction\":\"A precise, numbered Recommended Corrective Action the design team can execute — what to redo, recalculate, or insert, in concrete engineering terms. 2-3 sentences.\",\"severityJustification\":\"Explanation of why this finding is Critical / Major / Minor / Observation, anchored in the cited clause (e.g. 'Critical because IRC:SP:48 Clause 6.2 mandates minimum hairpin radius of 14 m for hill roads carrying buses; DPR shows 9 m — direct safety hazard.'). 1-2 sentences.\"}]}\n\ncomplianceType rules: use 'Documentation' for findings about missing/incomplete documents, signatures, drawings, registers, certifications, NOCs, approvals or report sections. Use 'Design' for everything substantive about geometry, pavement, drainage, structures, safety, materials, calculations, BOQ correctness, etc.\n\nSeverity definitions: critical=direct safety hazard or mandatory IRC/MoRTH code violation; major=significant technical flaw or missing mandatory calculation; minor=incomplete or insufficient data, missing supporting documents, inadequate detail; observation=suggestion for improvement or best practice recommendation. A well-prepared DPR will typically have a balanced mix of all four severity levels. Provide detailed content in description, impact, and recommendation fields (2-3 sentences each). Minimum 12 findings. Maximum 20."});
+
+          /* Start cycling progress messages - NO mention of any backend */
+          setProgress(PROGRESS_MSGS[0]);setPct(50);
+          var msgTimer=setInterval(function(){
+            msgIdx.current=(msgIdx.current+1)%PROGRESS_MSGS.length;
+            setProgress(PROGRESS_MSGS[msgIdx.current]);
+            setPct(function(prev){return Math.min(prev+2,85)});
+          },3000);
+
+          var body=JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:32000,
+            system:"You are a senior highway design auditor with 20+ years experience in IRC Codes, MoRTH Specifications (5th Revision), Bridge and Culvert Codes, Pavement Design, Geometric Design, Road Safety, Drainage, Land Acquisition and Environmental norms. You perform professional DPR compliance audits for Indian Road/Highway projects. You are technically rigorous. You NEVER hallucinate clause numbers. Every deficiency you produce MUST cite a specific document (e.g. IRC:SP:42), an exact clause number (e.g. Clause 4.3.2), a one-line summary of what that clause requires, and a precise description of how the DPR fails it. If — and only if — a relevant clause is not present in the loaded reference documents, you must emit the finding as 'General Observation — clause reference not available' rather than invent a clause number. Code references that have no [IRC REFERENCE: filename] block above are NOT loaded and must not be cited.",
+            messages:[{role:"user",content:blocks}]
+          });
+
+          var response=null;var maxRetries=3;
+          for(var attempt=1;attempt<=maxRetries;attempt++){
+            response=await fetch("https://api.anthropic.com/v1/messages",{
+              method:"POST",headers:{"Content-Type":"application/json","x-api-key":apiKeyRef.current,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:body
+            });
+            if(response.status===429&&attempt<maxRetries){
+              var ws=Math.min(30*attempt,120);
+              for(var sec=ws;sec>0;sec--){
+                setProgress("Server busy. Retrying in "+sec+"s...");
+                await new Promise(function(r){setTimeout(r,1000)});
+              }
+              continue;
+            }
+            break;
+          }
+          clearInterval(msgTimer);setPct(88);
+          if(!response.ok){
+            var ed={};try{ed=await response.json()}catch(ex){}
+            var errMsg=ed.error&&ed.error.message?ed.error.message:(ed.error||"Analysis failed ("+response.status+")");
+            if(response.status===429)throw new Error("Service temporarily busy. Please try again in a few minutes.");
+            throw new Error(errMsg);
+          }
+          setProgress("Compiling deficiency report...");setPct(92);
+          var data=await response.json();
+          var txt=data.content.map(function(b){return b.type==="text"?b.text:""}).join("");
+          var parsed;var cleaned=cleanJSON(txt);
+          if(!cleaned)throw new Error("Analysis produced no results. Please try again.");
+          try{parsed=JSON.parse(cleaned)}catch(pe){
+            try{
+              var sm=cleaned.match(/"summary"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+              var sc=cleaned.match(/"complianceScore"\s*:\s*(\d+)/);
+              var rl=cleaned.match(/"riskLevel"\s*:\s*"([^"]*)"/);
+              var di2=cleaned.indexOf('"deficiencies"');if(di2===-1)throw new Error("no deficiencies");
+              var as2=cleaned.indexOf("[",di2);var dep=0;var ae=-1;
+              for(var ci=as2;ci<cleaned.length;ci++){if(cleaned[ci]==="[")dep++;if(cleaned[ci]==="]")dep--;if(dep===0){ae=ci;break}}
+              if(ae===-1) ae=cleaned.lastIndexOf("]");
+              var arrStr=cleaned.substring(as2,ae+1).replace(/,\s*\]/g,"]").replace(/,\s*\}/g,"}").replace(/\}\s*\{/g,"},{");
+              parsed={summary:sm?sm[1].replace(/\\"/g,'"').replace(/\\n/g," "):"Analysis complete.",complianceScore:sc?parseInt(sc[1]):50,riskLevel:rl?rl[1]:"Moderate",deficiencies:JSON.parse(arrStr)};
+            }catch(pe2){throw new Error("Analysis report parsing failed. Please try again.")}
+          }
+          if(parsed.deficiencies){
+            parsed.deficiencies=parsed.deficiencies.filter(function(d){return d&&d.title&&d.severity});
+            parsed.deficiencies.forEach(function(d){
+              if(!SEVERITY_CONFIG[d.severity]) d.severity="observation";
+              /* Ver67: normalize clause-level citation fields */
+              var hasDoc=d.documentName&&String(d.documentName).trim();
+              var hasClause=d.clauseNumber&&String(d.clauseNumber).trim();
+              if(!hasDoc||!hasClause||/general observation/i.test(d.documentName||"")){
+                d.documentName=d.documentName&&hasDoc?d.documentName:"General Observation";
+                d.clauseNumber=hasClause?d.clauseNumber:"N/A";
+                if(!d.clauseSummary)d.clauseSummary="General Observation — clause reference not available";
+              }
+              if(!d.failureReason)d.failureReason=d.description||"";
+              if(!d.clause)d.clause=(d.documentName==="General Observation")?"General Observation":(d.documentName+" "+d.clauseNumber);
+              /* Ver67 Step 7: depth fields */
+              var docCats={Documentation:1};
+              if(!d.complianceType||(d.complianceType!=="Design"&&d.complianceType!=="Documentation")){
+                d.complianceType=docCats[d.category]?"Documentation":"Design";
+              }
+              if(!d.correctiveAction)d.correctiveAction=d.recommendation||"";
+              if(!d.severityJustification){
+                var sevName=(SEVERITY_CONFIG[d.severity]||SEVERITY_CONFIG.observation).label;
+                d.severityJustification="Classified as "+sevName+" based on "+(d.clause||"the cited clause")+".";
+              }
+            });
+          }
+          /* Ver67: attach report-header metadata so PDF/Word/Print can use it */
+          parsed.reportHeader={projectName:projectName,roadNumber:roadNumber,officerName:officerName,officerDesignation:officerDesignation,reviewDate:reviewDate};
+          parsed.loadedGuidelines=glLoaded.slice();
+          setPct(100);setResults(parsed);setStep(4);
+        }catch(err){setError(err.message);setStep(2)}
+        finally{setLoading(false);setProgress("");setPct(0)}
+      }
+
+      function resetAll(){setStep(0);setGFiles([]);setDFiles([]);setCtx("");setSelGL([]);setResults(null);setError("");setGlFetchFailed([]);setProjectName("");setRoadNumber("");setOfficerName("");setOfficerDesignation("");setReviewDate(todayISO())}
+      var canStep0=selGL.length>0||gFiles.length>0;
+      var canStep2=dFiles.length>0;
+      var STEPS=[{emoji:"\u{1F4CB}",label:"Guidelines"},{emoji:"\u{1F4D1}",label:"Upload DPR"},{emoji:"\u{1F50D}",label:"Analyze"},{emoji:"\u{1F4CA}",label:"Report"}];
+
+      return(
+        <div style={{minHeight:"100vh",backgroundColor:"#F8F5EE",fontFamily:"'Outfit',sans-serif"}}>
+          {/* HEADER with API status dot */}
+          <div style={{background:"linear-gradient(135deg,#0A1F44 0%,#142B5C 50%,#1E3A6E 100%)",padding:"16px 20px",borderBottom:"3px solid #C9A961"}}>
+            <div style={{maxWidth:"840px",margin:"0 auto",display:"flex",alignItems:"center",gap:"14px"}}>
+              <AurisMark size={50} onDark={true}/>
+              <div style={{flex:1}}>
+                <h1 style={{margin:0,fontFamily:"'Playfair Display',serif",fontSize:"20px",fontWeight:800,color:"#fff"}}>AURIS DPR Analyzer Pro <span style={{fontSize:"12px",fontWeight:700,color:"#C9A961",letterSpacing:1}}>Ver67</span></h1>
+                <p style={{margin:0,fontSize:"11px",color:"rgba(201,169,97,0.85)",letterSpacing:".3px"}}>{AURIS_TAGLINE}</p>
+              </div>
+              <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:"6px"}}>
+                {/* API STATUS DOT */}
+                <div style={{display:"flex",alignItems:"center",gap:"6px",padding:"4px 10px",borderRadius:20,backgroundColor:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.1)"}} title={apiStatus==="ready"?"Analysis engine connected":"Analysis engine not configured"}>
+                  <div style={{width:10,height:10,borderRadius:"50%",backgroundColor:apiStatus==="ready"?"#22C55E":apiStatus==="checking"?"#FBBF24":"#EF4444",boxShadow:apiStatus==="ready"?"0 0 6px rgba(34,197,94,0.5)":"0 0 6px rgba(239,68,68,0.5)",animation:apiStatus==="ready"?"dotGlow 2s infinite":"none"}}/>
+                  <span style={{fontSize:"10px",color:"rgba(255,255,255,0.5)",fontWeight:600}}>{apiStatus==="ready"?"Engine Ready":apiStatus==="checking"?"Checking...":"Not Configured"}</span>
+                </div>
+                <p
+  style={{
+    margin: 0,
+    fontSize: "9px",
+    color: "rgba(255,255,255,0.3)",
+    lineHeight: 1.3,
+    textAlign: "right"
+  }}
+>
+  Developed by<br />
+  <span
+    style={{
+      color: "rgba(201,169,97,0.85)",
+      fontWeight: 600
+    }}
+  >
+    Col Ashish Bhardwaj
+  </span>
+  <br />
+  <span
+    style={{
+      color: "rgba(255,255,255,0.4)",
+      fontWeight: 500
+    }}
+  >
+    AURIS Compliance Suite
+  </span>
+</p>
+              </div>
+            </div>
+          </div>
+
+          <div style={{maxWidth:"840px",margin:"0 auto",padding:"8px 16px 40px"}}>
+            {step<4&&<StepIndicator currentStep={step<3?step:2} steps={STEPS}/>}
+
+            {/* STEP 0: Guidelines (NO API key box) */}
+            {step===0&&(
+              <div style={{animation:"fadeIn 0.3s ease"}}>
+                <div style={{backgroundColor:"#FDF8EC",border:"1px solid #E8D9A8",borderRadius:"14px",padding:"18px 20px",marginBottom:"20px"}}>
+                  <h3 style={{margin:"0 0 6px",fontSize:"15px",fontWeight:700,color:"#A88B47"}}>{"\u{1F44B} Welcome!"}</h3>
+                  <p style={{margin:0,fontSize:"13px",color:"#6B5824",lineHeight:1.6}}>Analyze your DPR against IRC codes, MoRTH specifications, and other regulatory guidelines. Select the applicable standards below and upload your DPR document.</p>
+                </div>
+                {apiStatus==="error"&&(
+                  <div style={{backgroundColor:"#FEF2F2",border:"1px solid #FECACA",borderRadius:"12px",padding:"14px 18px",marginBottom:"16px",fontSize:"13px",color:"#DC2626"}}>
+                    {"\u26A0\uFE0F Analysis engine is not configured. Please contact the administrator to set up the environment variable."}
+                  </div>
+                )}
+                <GuidelineLoadStatus status={glStatus} loaded={glLoaded} failed={glFailedList} onRetry={loadGuidelines}/>
+                <div style={{backgroundColor:"#fff",borderRadius:"16px",padding:"22px",marginBottom:"16px",boxShadow:"0 1px 4px rgba(0,0,0,0.05)",border:"1px solid #E2E8F0"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"16px"}}>
+                    <span style={{fontSize:"20px"}}>{"\u{1F4CB}"}</span>
+                    <div style={{flex:1}}><h3 style={{margin:0,fontSize:"15px",fontWeight:700,color:"#0A1F44"}}>Select Guidelines</h3><p style={{margin:"2px 0 0",fontSize:"12px",color:"#94A3B8"}}>Choose standard codes or upload custom</p></div>
+                    <button onClick={selectAllGL} style={{fontSize:"12px",color:"#C9A961",background:"#FDF8EC",border:"1px solid #E8D9A8",cursor:"pointer",padding:"6px 12px",borderRadius:"6px",fontWeight:600}}>{selGL.length===STANDARD_GUIDELINES.length?"Deselect All":"Select All"}</button>
+                  </div>
+                  <GuidelineSelector selected={selGL} onToggle={toggleGL}/>
+                  <div style={{marginTop:"20px",borderTop:"1px solid #F1F5F9",paddingTop:"16px"}}>
+                    <FileUploadZone label="Upload Custom Guidelines (Optional)" description="Your own regulation documents" files={gFiles} onAddFiles={addGFiles} onRemoveFile={removeGFile} icon={"\u{1F4E4}"}/>
+                  </div>
+                </div>
+                <button onClick={function(){if(glStatus!=="ok"){setError("Guidelines have not finished loading \u2014 see banner above.");return}if(canStep0){setError("");setStep(2)}else setError("Select at least one guideline.")}} disabled={glStatus!=="ok"} style={{width:"100%",padding:"16px",borderRadius:"12px",border:"none",background:(canStep0&&glStatus==="ok")?"linear-gradient(135deg,#C9A961,#A88B47)":"#CBD5E1",color:"#fff",fontSize:"16px",fontWeight:700,cursor:(canStep0&&glStatus==="ok")?"pointer":"not-allowed"}}>{glStatus==="loading"?"Loading guidelines...":glStatus==="error"?"Blocked \u2014 guideline files failed":"Next \u2192 Upload Your DPR"}</button>
+                <DevCredit/>
+              </div>
+            )}
+
+            {/* STEP 2: Upload DPR */}
+            {step===2&&(
+              <div style={{animation:"fadeIn 0.3s ease"}}>
+                <GuidelineLoadStatus status={glStatus} loaded={glLoaded} failed={glFailedList} onRetry={loadGuidelines}/>
+                <div style={{backgroundColor:"#fff",borderRadius:"16px",padding:"22px",marginBottom:"16px",boxShadow:"0 1px 4px rgba(0,0,0,0.05)",border:"1px solid #E2E8F0"}}>
+                  <FileUploadZone label="Upload Your DPR Document(s)" description="The DPR you want to analyze" files={dFiles} onAddFiles={addDFiles} onRemoveFile={removeDFile} icon={"\u{1F4D1}"}/>
+                  <div style={{backgroundColor:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:"10px",padding:"12px 16px",marginTop:"8px"}}>
+                    <div style={{fontSize:"13px",fontWeight:700,color:"#92400E",marginBottom:"4px"}}>{"\u{1F4A1} Supported: PDF, Excel (.xlsx/.xls), CSV, Word (.docx), Text (.txt)"}</div>
+                  </div>
+                </div>
+                <div style={{backgroundColor:"#fff",borderRadius:"16px",padding:"22px",marginBottom:"16px",boxShadow:"0 1px 4px rgba(0,0,0,0.05)",border:"1px solid #E2E8F0"}}>
+                  <h3 style={{margin:"0 0 4px",fontSize:"15px",fontWeight:700,color:"#0A1F44"}}>{"\u{1F4CB} Report Header Details"}</h3>
+                  <p style={{margin:"0 0 14px",fontSize:"12px",color:"#94A3B8"}}>These appear on the AURIS-styled PDF, Word and printed reports.</p>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"12px"}}>
+                    <div>
+                      <label style={{display:"block",fontSize:"11px",fontWeight:700,color:"#475569",marginBottom:"4px",textTransform:"uppercase",letterSpacing:.4}}>DPR Project Name</label>
+                      <input type="text" value={projectName} onChange={function(e){setProjectName(e.target.value)}} placeholder="e.g. Four-laning of NH-44 (km 12 — 55)" style={{width:"100%",padding:"10px 12px",borderRadius:"8px",border:"1.5px solid #E2E8F0",fontSize:"13px",fontFamily:"'Outfit',sans-serif",backgroundColor:"#FAFBFC",outline:"none",boxSizing:"border-box"}}/>
+                    </div>
+                    <div>
+                      <label style={{display:"block",fontSize:"11px",fontWeight:700,color:"#475569",marginBottom:"4px",textTransform:"uppercase",letterSpacing:.4}}>Road No. / Project Code</label>
+                      <input type="text" value={roadNumber} onChange={function(e){setRoadNumber(e.target.value)}} placeholder="e.g. NH-44 / Package AP-NH-44-II" style={{width:"100%",padding:"10px 12px",borderRadius:"8px",border:"1.5px solid #E2E8F0",fontSize:"13px",fontFamily:"'Outfit',sans-serif",backgroundColor:"#FAFBFC",outline:"none",boxSizing:"border-box"}}/>
+                    </div>
+                    <div>
+                      <label style={{display:"block",fontSize:"11px",fontWeight:700,color:"#475569",marginBottom:"4px",textTransform:"uppercase",letterSpacing:.4}}>Reviewing Officer Name</label>
+                      <input type="text" value={officerName} onChange={function(e){setOfficerName(e.target.value)}} placeholder="e.g. Col Ashish Bhardwaj" style={{width:"100%",padding:"10px 12px",borderRadius:"8px",border:"1.5px solid #E2E8F0",fontSize:"13px",fontFamily:"'Outfit',sans-serif",backgroundColor:"#FAFBFC",outline:"none",boxSizing:"border-box"}}/>
+                    </div>
+                    <div>
+                      <label style={{display:"block",fontSize:"11px",fontWeight:700,color:"#475569",marginBottom:"4px",textTransform:"uppercase",letterSpacing:.4}}>Designation</label>
+                      <input type="text" value={officerDesignation} onChange={function(e){setOfficerDesignation(e.target.value)}} placeholder="e.g. Chief Engineer, Highways" style={{width:"100%",padding:"10px 12px",borderRadius:"8px",border:"1.5px solid #E2E8F0",fontSize:"13px",fontFamily:"'Outfit',sans-serif",backgroundColor:"#FAFBFC",outline:"none",boxSizing:"border-box"}}/>
+                    </div>
+                    <div>
+                      <label style={{display:"block",fontSize:"11px",fontWeight:700,color:"#475569",marginBottom:"4px",textTransform:"uppercase",letterSpacing:.4}}>Date of Review</label>
+                      <input type="date" value={reviewDate} onChange={function(e){setReviewDate(e.target.value)}} style={{width:"100%",padding:"10px 12px",borderRadius:"8px",border:"1.5px solid #E2E8F0",fontSize:"13px",fontFamily:"'Outfit',sans-serif",backgroundColor:"#FAFBFC",outline:"none",boxSizing:"border-box"}}/>
+                    </div>
+                  </div>
+                </div>
+                <div style={{backgroundColor:"#fff",borderRadius:"16px",padding:"22px",marginBottom:"16px",boxShadow:"0 1px 4px rgba(0,0,0,0.05)",border:"1px solid #E2E8F0"}}>
+                  <h3 style={{margin:"0 0 10px",fontSize:"15px",fontWeight:700,color:"#0A1F44"}}>{"\u{1F4AC} Additional Context"} <span style={{fontWeight:400,color:"#94A3B8"}}>(Optional)</span></h3>
+                  <textarea value={ctx} onChange={function(e){setCtx(e.target.value)}} placeholder={"e.g. 4-lane NH project in Rajasthan, 120km\nFocus on pavement design and drainage\nCheck BOQ rates against DSR 2024"} style={{width:"100%",minHeight:"100px",padding:"14px 16px",borderRadius:"12px",border:"1.5px solid #E2E8F0",fontSize:"13px",fontFamily:"'Outfit',sans-serif",resize:"vertical",backgroundColor:"#FAFBFC",outline:"none",boxSizing:"border-box",lineHeight:1.6}}/>
+                </div>
+                <div style={{display:"flex",gap:"12px"}}>
+                  <button onClick={function(){setStep(0)}} style={{padding:"14px 24px",borderRadius:"12px",border:"1.5px solid #E2E8F0",backgroundColor:"#fff",color:"#64748B",fontSize:"14px",fontWeight:600,cursor:"pointer"}}>{"\u2190 Back"}</button>
+                  <button onClick={function(){if(glStatus!=="ok"){setError("Guidelines failed to load — analysis is blocked. Return to the previous step to retry.");return}if(canStep2){setError("");analyze()}else setError("Upload at least one DPR document.")}} disabled={glStatus!=="ok"} style={{flex:1,padding:"16px",borderRadius:"12px",border:"none",background:(canStep2&&glStatus==="ok")?"linear-gradient(135deg,#C9A961,#A88B47)":"#CBD5E1",color:"#fff",fontSize:"16px",fontWeight:700,cursor:(canStep2&&glStatus==="ok")?"pointer":"not-allowed"}}>{glStatus==="error"?"Blocked — guideline files failed":"\u{1F50D} Analyze DPR Now"}</button>
+                </div>
+                <DevCredit/>
+              </div>
+            )}
+
+            {/* STEP 3: Loading - Professional messages, NO AI/backend mention */}
+            {step===3&&loading&&(
+              <div style={{textAlign:"center",padding:"60px 20px",backgroundColor:"#fff",borderRadius:"16px",border:"1px solid #E2E8F0",animation:"fadeIn 0.3s ease"}}>
+                <div style={{fontSize:"56px",marginBottom:"20px",animation:"pulse 2s infinite"}}>{"\u{1F50D}"}</div>
+                <h2 style={{margin:"0 0 8px",fontFamily:"'Playfair Display',serif",fontSize:"22px",color:"#0A1F44"}}>Analyzing Your DPR...</h2>
+                <p style={{margin:"0 0 28px",fontSize:"14px",color:"#64748B"}}>{progress}</p>
+                <div style={{width:"100%",maxWidth:"400px",margin:"0 auto",height:"8px",backgroundColor:"#E2E8F0",borderRadius:"4px",overflow:"hidden"}}>
+                  <div style={{height:"100%",borderRadius:"4px",background:"linear-gradient(90deg,#C9A961,#D4B97A)",width:pct+"%",transition:"width 0.5s ease"}}/>
+                </div>
+                <p style={{margin:"10px 0 0",fontSize:"12px",color:"#94A3B8"}}>{pct+"%"}</p>
+                <div style={{marginTop:"30px",padding:"16px",backgroundColor:"#F8FAFC",borderRadius:"10px",display:"inline-block"}}>
+                  <p style={{margin:0,fontSize:"12px",color:"#64748B"}}>{"Checking compliance against IRC codes and MoRTH specifications. Typically takes 1-3 minutes."}</p>
+                </div>
+                <DevCredit/>
+              </div>
+            )}
+
+            {/* STEP 4: Results */}
+            {step===4&&results&&(<div style={{animation:"fadeIn 0.3s ease"}}><ResultsDashboard results={results} onReset={resetAll} apiKey={apiKeyRef.current} geminiKey={geminiKeyRef.current}/></div>)}
+
+            {/* ERROR */}
+            {error&&(
+              <div style={{backgroundColor:"#FEF2F2",border:"2px solid #FECACA",borderRadius:"12px",padding:"16px 18px",marginTop:"16px",fontSize:"14px",color:"#DC2626",display:"flex",alignItems:"flex-start",gap:"10px"}}>
+                <span style={{fontSize:"20px",flexShrink:0}}>{"\u26A0\uFE0F"}</span>
+                <div style={{flex:1}}>
+                  <strong style={{fontSize:"15px"}}>{"Error"+(glFetchFailed.length>0?" \u2014 Reference Files Failed to Load":"")}</strong>
+                  <div style={{marginTop:"6px",whiteSpace:"pre-line",lineHeight:1.6}}>{error}</div>
+                  {glFetchFailed.length>0&&(
+                    <div style={{marginTop:"12px",padding:"10px 14px",backgroundColor:"#FFF",border:"1px solid #FECACA",borderRadius:"8px"}}>
+                      <div style={{fontWeight:700,fontSize:"12px",color:"#991B1B",marginBottom:"6px"}}>{"Files that failed to load:"}</div>
+                      {glFetchFailed.map(function(f){return <div key={f} style={{fontSize:"12px",fontFamily:"monospace",color:"#7F1D1D",padding:"2px 0"}}>{"\u2022 "+f}</div>})}
+                      <button onClick={function(){setError("");setGlFetchFailed([]);analyze()}} style={{marginTop:"10px",padding:"9px 18px",borderRadius:"8px",border:"none",background:"linear-gradient(135deg,#DC2626,#B91C1C)",color:"#fff",fontSize:"13px",fontWeight:700,cursor:"pointer"}}>{"\u21BB Retry Loading Guidelines & Analyze"}</button>
+                    </div>
+                  )}
+                  <button onClick={function(){setError("")}} style={{display:"inline-block",marginTop:"10px",fontSize:"12px",color:"#DC2626",background:"none",border:"none",cursor:"pointer",textDecoration:"underline"}}>Dismiss</button>
+                </div>
+              </div>
+            )}
+
+            {/* HOW IT WORKS */}
+            {step<3&&(
+              <div style={{marginTop:"28px",padding:"18px 20px",borderRadius:"14px",backgroundColor:"#fff",border:"1px solid #E2E8F0"}}>
+                <h3 style={{margin:"0 0 12px",fontSize:"14px",fontWeight:700,color:"#0A1F44"}}>How It Works</h3>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:"16px"}}>
+                  {[{icon:"\u{1F4CB}",t:"1. Select Guidelines",d:"Pick IRC codes & standards"},{icon:"\u{1F4D1}",t:"2. Upload DPR",d:"PDF, Excel, Word - any format"},{icon:"\u{1F50D}",t:"3. Compliance Check",d:"Cross-reference against codes"},{icon:"\u{1F4CA}",t:"4. Get Report",d:"Issues with fix recommendations"}].map(function(s){
+                    return <div key={s.t} style={{textAlign:"center"}}><div style={{fontSize:"28px",marginBottom:"6px"}}>{s.icon}</div><div style={{fontSize:"13px",fontWeight:700,color:"#0A1F44"}}>{s.t}</div><div style={{fontSize:"11px",color:"#94A3B8",marginTop:"2px"}}>{s.d}</div></div>;
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    /* ============ ROOT WITH AUTH GATE ============ */
+    function App(){
+      var as=useState(function(){return getSession()});var authed=as[0];var setAuthed=as[1];
+      if(!authed)return <PasswordGate onPass={function(){setAuthed(true)}}/>;
+      return <DPRAnalyzer/>;
+    }
+
+    ReactDOM.render(React.createElement(App,null),document.getElementById("root"));
+  </script>
+</body>
+</html>
