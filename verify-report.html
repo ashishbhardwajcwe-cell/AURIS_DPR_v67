@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AURIS Citation Verifier — Ver67</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%230A1F44'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-family='Playfair Display, Georgia, serif' font-size='38' font-weight='800' fill='%23C9A961'%3EA%3C/text%3E%3C/svg%3E">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Outfit',sans-serif;background:#F8F5EE;min-height:100vh;color:#0A1F44;padding:24px}
+    .wrap{max-width:1100px;margin:0 auto}
+    .hdr{background:linear-gradient(135deg,#0A1F44 0%,#142B5C 50%,#1E3A6E 100%);color:#fff;padding:20px 28px;border-radius:14px;display:flex;align-items:center;gap:16px;border-bottom:3px solid #C9A961;margin-bottom:18px}
+    .mark{display:inline-flex;align-items:center;justify-content:center;height:50px;padding:0 17px;border-radius:8px;border:1.5px solid #C9A961;font-family:'Playfair Display',serif;font-weight:800;font-size:21px;letter-spacing:0.3em;color:#C9A961;line-height:1;flex-shrink:0}
+    .mark span{padding-left:0.3em}
+    h1{font-family:'Playfair Display',serif;font-size:22px;font-weight:800;margin:0}
+    h1 .v{font-size:12px;color:#C9A961;font-weight:700;letter-spacing:1px;margin-left:8px}
+    .sub{font-size:11px;color:rgba(201,169,97,0.85);letter-spacing:.3px;margin-top:2px}
+    .card{background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:18px 22px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+    .card h2{font-size:15px;font-weight:700;color:#0A1F44;margin-bottom:6px}
+    .card p{font-size:13px;color:#475569;line-height:1.6}
+    .drop{border:2px dashed #CBD5E1;border-radius:12px;padding:28px;text-align:center;cursor:pointer;background:#FAFBFC;margin-top:10px;transition:border-color .15s,background .15s}
+    .drop.over{border-color:#C9A961;background:#FDF8EC}
+    .drop strong{color:#C9A961}
+    textarea{width:100%;min-height:140px;padding:12px 14px;border-radius:10px;border:1.5px solid #E2E8F0;font-family:'Outfit',sans-serif;font-size:13px;background:#FAFBFC;resize:vertical;outline:none;margin-top:10px}
+    textarea:focus{border-color:#C9A961;box-shadow:0 0 0 3px rgba(201,169,97,.1)}
+    .btn{padding:11px 22px;border-radius:10px;border:none;background:linear-gradient(135deg,#C9A961,#A88B47);color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif}
+    .btn:disabled{background:#CBD5E1;cursor:not-allowed}
+    .btn.sec{background:#fff;color:#0A1F44;border:1.5px solid #E2E8F0}
+    .gl-strip{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+    .gl-pill{font-size:11px;font-family:monospace;background:#fff;border:1px solid #CBD5E1;border-radius:4px;padding:2px 8px;color:#0F172A;font-weight:600}
+    .gl-pill.ok{background:#F0FDF4;border-color:#BBF7D0;color:#15803D}
+    .gl-pill.fail{background:#FEF2F2;border-color:#FECACA;color:#991B1B}
+    table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+    th{background:#0A1F44;color:#fff;padding:9px 8px;text-align:left;font-weight:700;font-size:11px;letter-spacing:.3px;text-transform:uppercase}
+    td{padding:9px 8px;border-bottom:1px solid #E2E8F0;vertical-align:top;color:#1E293B;line-height:1.45}
+    tr.row-ok td{background:#F0FDF4}
+    tr.row-warn td{background:#FFFBEB}
+    tr.row-bad td{background:#FEF2F2}
+    tr.row-noref td{background:#FEE2E2}
+    .verdict{font-weight:700;font-size:11px;padding:3px 8px;border-radius:4px;display:inline-block;white-space:nowrap}
+    .v-ok{background:#16A34A;color:#fff}
+    .v-warn{background:#D97706;color:#fff}
+    .v-bad{background:#DC2626;color:#fff}
+    .v-noref{background:#7F1D1D;color:#fff}
+    .v-go{background:#6B7280;color:#fff}
+    .ex{font-family:monospace;font-size:11px;color:#475569;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:4px;padding:4px 6px;margin-top:3px;display:block;white-space:pre-wrap;word-break:break-word}
+    .stat{display:inline-block;text-align:center;padding:10px 16px;border-radius:8px;border:1.5px solid #E2E8F0;margin:0 6px 6px 0;background:#fff;min-width:90px}
+    .stat .n{font-size:22px;font-weight:800;line-height:1}
+    .stat .l{font-size:10px;text-transform:uppercase;color:#64748B;margin-top:4px;font-weight:700;letter-spacing:.3px}
+    .muted{color:#94A3B8;font-size:11px;margin-top:4px}
+    code{font-family:monospace;background:#F1F5F9;padding:1px 5px;border-radius:3px;font-size:11px}
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hdr">
+    <div class="mark"><span>AURIS</span></div>
+    <div style="flex:1">
+      <h1>Citation Verifier <span class="v">Ver67</span></h1>
+      <div class="sub">Independently cross-checks every clause cited in an AURIS report against the loaded IRC / MoRTH reference files.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>1. Reference files loaded for verification</h2>
+    <p>Each clause citation in your report is checked against these eight markdown reference files. If a citation names a document not in this list, it is flagged as <strong>NO REFERENCE LOADED</strong> (the AURIS prompt explicitly forbids this — it is a hallucination signal).</p>
+    <div id="glStrip" class="gl-strip"><span class="muted">Loading…</span></div>
+  </div>
+
+  <div class="card">
+    <h2>2. Drop the report JSON, or paste your report findings as text</h2>
+    <p>The cleanest input is the JSON file exported from the AURIS app — use the new <em>JSON (verifier)</em> button on the results screen. You can also paste text from the PDF / Word / Print view: the verifier will regex-extract any <code>DocCode  ClauseRef</code> pair it finds.</p>
+    <div id="drop" class="drop">
+      <div style="font-size:34px;margin-bottom:8px;opacity:.5">📥</div>
+      <div><strong>Drop the report JSON here</strong> &nbsp;·&nbsp; or click to browse</div>
+      <input id="file" type="file" accept=".json,application/json" style="display:none">
+      <div class="muted" style="margin-top:10px">Accepts the exact JSON produced by the AURIS analyzer</div>
+    </div>
+    <textarea id="pasted" placeholder="…or paste report text (PDF/Word/Print view content). The verifier will look for cited document names and clause numbers automatically."></textarea>
+    <div style="display:flex;gap:10px;margin-top:12px;align-items:center;flex-wrap:wrap">
+      <button id="runBtn" class="btn" disabled>Verify Citations</button>
+      <button id="clearBtn" class="btn sec">Clear</button>
+      <span id="loadMsg" class="muted"></span>
+    </div>
+  </div>
+
+  <div id="resultCard" class="card" style="display:none">
+    <h2>3. Verification Result</h2>
+    <div id="statRow" style="margin:10px 0 14px"></div>
+    <table id="resTbl">
+      <thead><tr>
+        <th style="width:30px">#</th>
+        <th style="width:80px">Severity</th>
+        <th>Cited Document</th>
+        <th>Cited Clause</th>
+        <th style="width:130px">Verdict</th>
+        <th>Evidence from MD file</th>
+      </tr></thead>
+      <tbody id="resBody"></tbody>
+    </table>
+    <p class="muted" style="margin-top:12px">Verdict legend &nbsp;·&nbsp;
+      <span class="verdict v-ok">VERIFIED</span> clause number located verbatim in the cited file &nbsp;·&nbsp;
+      <span class="verdict v-warn">MISATTRIBUTED</span> clause number exists but in a different loaded file &nbsp;·&nbsp;
+      <span class="verdict v-noref">NO REF LOADED</span> document not in the loaded set (forbidden by prompt) &nbsp;·&nbsp;
+      <span class="verdict v-bad">NOT FOUND</span> clause number does not appear in any loaded MD file &nbsp;·&nbsp;
+      <span class="verdict v-go">GENERAL OBS</span> finding declared no clause (honest fallback, nothing to verify)
+    </p>
+  </div>
+
+  <div style="text-align:center;font-size:11px;color:#94A3B8;padding:14px 0">Developed by Col Ashish Bhardwaj &nbsp;·&nbsp; AURIS DPR Analyzer Pro Ver67</div>
+</div>
+
+<script>
+/* ===== Reference files (same set the analyzer loads) ===== */
+var IRC_REF_FILES=[
+  {file:"IRC_37_2018_Extracted.md",            label:"IRC:37",     match:[/^IRC[\s:]?37/i]},
+  {file:"IRC_52_2019_Extraction.md",           label:"IRC:52",     match:[/^IRC[\s:]?52/i]},
+  {file:"IRC_73_1980_Extraction.md",           label:"IRC:73",     match:[/^IRC[\s:]?73/i]},
+  {file:"IRC_SP13_DPR_Analyzer_Extraction.md", label:"IRC:SP:13",  match:[/^IRC[\s:]?SP[\s:]?13/i]},
+  {file:"IRC_SP19_DPR_Analyzer_Extraction.md", label:"IRC:SP:19",  match:[/^IRC[\s:]?SP[\s:]?19/i]},
+  {file:"IRC_SP42_2014_DPR_Analyzer_Extraction.md",label:"IRC:SP:42",match:[/^IRC[\s:]?SP[\s:]?42/i]},
+  {file:"IRC_SP48_2023_DPR_Analyzer_Extraction.md",label:"IRC:SP:48",match:[/^IRC[\s:]?SP[\s:]?48/i]},
+  {file:"MoRTH_DPR_Reference_Extract.md",      label:"MoRTH 5th Revision", match:[/morth/i]}
+];
+/* Use relative path — works when deployed alongside Index.html on Netlify */
+var BASE_URL = "guidelines/";
+
+var cache = {};   /* filename -> text */
+var loaded = []; /* labels loaded */
+var failed = [];
+
+function el(id){return document.getElementById(id)}
+
+function renderStrip(){
+  var s = el("glStrip"); s.innerHTML = "";
+  IRC_REF_FILES.forEach(function(f){
+    var ok = !!cache[f.file];
+    var cls = ok ? "gl-pill ok" : (failed.indexOf(f.file)!==-1 ? "gl-pill fail" : "gl-pill");
+    var node = document.createElement("span");
+    node.className = cls;
+    node.textContent = (ok?"✓ ":(failed.indexOf(f.file)!==-1?"✗ ":""))+f.label;
+    s.appendChild(node);
+  });
+}
+
+function loadAll(){
+  el("loadMsg").textContent = "Loading reference files…";
+  Promise.all(IRC_REF_FILES.map(function(f){
+    return fetch(BASE_URL+f.file)
+      .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
+      .then(function(t){ cache[f.file]=t; loaded.push(f.label); })
+      .catch(function(){ failed.push(f.file); });
+  })).then(function(){
+    renderStrip();
+    var msg = "Loaded "+loaded.length+" of "+IRC_REF_FILES.length+" reference files.";
+    el("loadMsg").textContent = msg + (failed.length ? " — some failed, results will be incomplete." : "");
+    el("runBtn").disabled = loaded.length === 0;
+  });
+}
+
+/* Resolve a document name string to the file in IRC_REF_FILES (or null) */
+function resolveFile(docName){
+  if(!docName) return null;
+  var s = String(docName).trim();
+  for(var i=0;i<IRC_REF_FILES.length;i++){
+    var f = IRC_REF_FILES[i];
+    for(var j=0;j<f.match.length;j++){
+      if(f.match[j].test(s)) return f;
+    }
+  }
+  return null;
+}
+
+/* Normalise a clause reference to the bare number (e.g. "Clause 4.3.2" -> "4.3.2", "Table 6.8" -> "6.8") */
+function normClause(clause){
+  if(!clause) return "";
+  var s = String(clause).trim();
+  /* keep first numeric run with dots, e.g. 6.10.1 or 401.2.2 */
+  var m = s.match(/[0-9]+(?:\.[0-9A-Za-z]+)*/);
+  return m ? m[0] : "";
+}
+
+/* Find clause in file text. Returns {found:boolean, line:int, excerpt:string} */
+function findClause(text, clauseNum){
+  if(!text || !clauseNum) return {found:false};
+  var lines = text.split("\n");
+  /* Build a few regex patterns from the clause number */
+  var esc = clauseNum.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  /* Match clause number when followed/preceded by non-numeric (so 2.3 doesn't match 12.3) */
+  var pats = [
+    new RegExp("(?:^|[^0-9.])"+esc+"(?:[^0-9]|$)")
+  ];
+  for(var i=0;i<lines.length;i++){
+    for(var p=0;p<pats.length;p++){
+      if(pats[p].test(lines[i])){
+        var ex = lines[i].trim();
+        if(ex.length > 220) ex = ex.substring(0,217)+"…";
+        return {found:true, line:i+1, excerpt:ex};
+      }
+    }
+  }
+  return {found:false};
+}
+
+/* Where else is this clause number found (for misattribution detection)? */
+function findClauseElsewhere(clauseNum, excludeFile){
+  if(!clauseNum) return null;
+  for(var i=0;i<IRC_REF_FILES.length;i++){
+    var f = IRC_REF_FILES[i];
+    if(f.file === excludeFile) continue;
+    if(!cache[f.file]) continue;
+    var r = findClause(cache[f.file], clauseNum);
+    if(r.found) return {label:f.label, line:r.line, excerpt:r.excerpt};
+  }
+  return null;
+}
+
+/* ===== Input handling ===== */
+function tryParseJson(s){
+  try { var j = JSON.parse(s); return j; } catch(e){ return null; }
+}
+
+/* Extract findings from arbitrary text by regex */
+var DOC_RE = /(IRC[\s:]?(?:SP[\s:]?)?[0-9]{1,3}(?:[:\s]?[0-9]{1,3})?|MoRTH[\w\s]*|General Observation)/i;
+var CLAUSE_RE = /(?:Clause|Cl\.|Section|Sec\.|Article|Art\.|Table)\s*([0-9]+(?:\.[0-9A-Za-z]+)*)/i;
+
+function extractFromText(txt){
+  var out = []; var lines = txt.split(/\r?\n/);
+  /* try to find: severity, doc, clause, title on same or adjacent lines */
+  for(var i=0;i<lines.length;i++){
+    var L = lines[i];
+    var dm = L.match(DOC_RE);
+    var cm = L.match(CLAUSE_RE);
+    if(dm && cm){
+      out.push({
+        severity:"",
+        title:"",
+        documentName: dm[1].replace(/\s+/g," ").trim(),
+        clauseNumber: cm[0].trim()
+      });
+    }
+  }
+  return out;
+}
+
+function findingsFrom(input){
+  /* JSON path: AURIS report shape */
+  if(typeof input === "object" && input && Array.isArray(input.deficiencies)){
+    return input.deficiencies.map(function(d){
+      return {
+        severity: d.severity||"",
+        title: d.title||"",
+        documentName: d.documentName||"",
+        clauseNumber: d.clauseNumber||""
+      };
+    });
+  }
+  /* Array of findings */
+  if(Array.isArray(input)){
+    return input.map(function(d){
+      return {
+        severity: d.severity||"",
+        title: d.title||"",
+        documentName: d.documentName||"",
+        clauseNumber: d.clauseNumber||""
+      };
+    });
+  }
+  return null;
+}
+
+/* ===== Run verification ===== */
+function verify(findings){
+  var rows = []; var n = {ok:0,warn:0,bad:0,noref:0,go:0};
+  findings.forEach(function(f, idx){
+    var row = {idx:idx+1, severity:f.severity, title:f.title, documentName:f.documentName, clauseNumber:f.clauseNumber};
+    var dn = String(f.documentName||"").trim();
+    if(!dn || /general observation/i.test(dn) || /N\/?A/i.test(f.clauseNumber||"")){
+      row.verdict = "GENERAL OBS"; row.cls="row-go"; row.vCls="v-go"; row.evidence = "(no clause to verify — honest fallback)"; n.go++;
+      rows.push(row); return;
+    }
+    var file = resolveFile(dn);
+    if(!file){
+      row.verdict = "NO REF LOADED"; row.cls="row-noref"; row.vCls="v-noref";
+      row.evidence = dn+" is not in the loaded reference set — the prompt forbids this. Treat as hallucinated.";
+      n.noref++;
+      rows.push(row); return;
+    }
+    var clauseNum = normClause(f.clauseNumber);
+    if(!clauseNum){
+      row.verdict = "NOT FOUND"; row.cls="row-bad"; row.vCls="v-bad";
+      row.evidence = "Could not parse a clause number out of '"+f.clauseNumber+"'";
+      n.bad++;
+      rows.push(row); return;
+    }
+    var found = findClause(cache[file.file], clauseNum);
+    if(found.found){
+      row.verdict = "VERIFIED"; row.cls="row-ok"; row.vCls="v-ok";
+      row.evidence = file.label+" line "+found.line+":\n"+found.excerpt;
+      n.ok++;
+      rows.push(row); return;
+    }
+    /* Not in cited file — check if it lives elsewhere */
+    var elsewhere = findClauseElsewhere(clauseNum, file.file);
+    if(elsewhere){
+      row.verdict = "MISATTRIBUTED"; row.cls="row-warn"; row.vCls="v-warn";
+      row.evidence = "Clause "+clauseNum+" NOT in "+file.label+", but found in "+elsewhere.label+" line "+elsewhere.line+":\n"+elsewhere.excerpt;
+      n.warn++;
+      rows.push(row); return;
+    }
+    row.verdict = "NOT FOUND"; row.cls="row-bad"; row.vCls="v-bad";
+    row.evidence = "Clause "+clauseNum+" not located in "+file.label+" or any other loaded MD file.";
+    n.bad++;
+    rows.push(row);
+  });
+  return {rows:rows, n:n};
+}
+
+function renderResult(res){
+  el("resultCard").style.display = "block";
+  var sr = el("statRow"); sr.innerHTML = "";
+  var stats = [
+    {n:res.n.ok,l:"Verified",c:"#16A34A"},
+    {n:res.n.warn,l:"Misattributed",c:"#D97706"},
+    {n:res.n.bad,l:"Not Found",c:"#DC2626"},
+    {n:res.n.noref,l:"No Ref Loaded",c:"#7F1D1D"},
+    {n:res.n.go,l:"General Obs",c:"#6B7280"},
+    {n:res.rows.length,l:"Total",c:"#0A1F44"}
+  ];
+  stats.forEach(function(s){
+    var d = document.createElement("div"); d.className="stat";
+    d.innerHTML = '<div class="n" style="color:'+s.c+'">'+s.n+'</div><div class="l">'+s.l+'</div>';
+    sr.appendChild(d);
+  });
+  var tb = el("resBody"); tb.innerHTML = "";
+  res.rows.forEach(function(r){
+    var tr = document.createElement("tr"); tr.className = r.cls;
+    function esc(s){return (s==null?"":String(s)).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+    tr.innerHTML =
+      '<td>'+r.idx+'</td>'+
+      '<td>'+esc(r.severity||"—")+'<div style="font-size:10px;color:#64748B;margin-top:2px">'+esc((r.title||"").substring(0,80))+'</div></td>'+
+      '<td>'+esc(r.documentName||"—")+'</td>'+
+      '<td>'+esc(r.clauseNumber||"—")+'</td>'+
+      '<td><span class="verdict '+r.vCls+'">'+esc(r.verdict)+'</span></td>'+
+      '<td><span class="ex">'+esc(r.evidence||"")+'</span></td>';
+    tb.appendChild(tr);
+  });
+}
+
+/* ===== UI wiring ===== */
+var drop = el("drop"), file = el("file"), pasted = el("pasted");
+drop.addEventListener("click", function(){ file.click(); });
+["dragenter","dragover"].forEach(function(e){ drop.addEventListener(e, function(ev){ ev.preventDefault(); drop.classList.add("over"); }); });
+["dragleave","drop"].forEach(function(e){ drop.addEventListener(e, function(ev){ ev.preventDefault(); drop.classList.remove("over"); }); });
+drop.addEventListener("drop", function(ev){
+  ev.preventDefault();
+  var f = ev.dataTransfer.files && ev.dataTransfer.files[0]; if(!f) return;
+  readFile(f);
+});
+file.addEventListener("change", function(ev){
+  var f = ev.target.files && ev.target.files[0]; if(!f) return;
+  readFile(f);
+});
+function readFile(f){
+  var r = new FileReader();
+  r.onload = function(){ pasted.value = r.result; pasted.focus(); };
+  r.readAsText(f);
+}
+el("runBtn").addEventListener("click", function(){
+  var txt = pasted.value.trim();
+  if(!txt){ alert("Drop the report JSON or paste report text first."); return; }
+  var j = tryParseJson(txt);
+  var findings = j ? findingsFrom(j) : null;
+  if(!findings || findings.length===0){
+    /* fall back to regex extraction from plain text */
+    findings = extractFromText(txt);
+  }
+  if(!findings || findings.length===0){
+    alert("Could not find any citations in the input."); return;
+  }
+  renderResult(verify(findings));
+});
+el("clearBtn").addEventListener("click", function(){
+  pasted.value=""; el("resultCard").style.display="none";
+});
+
+loadAll();
+</script>
+</body>
+</html>
