@@ -1,68 +1,64 @@
-# AURIS DPR Analyzer Pro — Ver67
+# DPR Analyzer Pro — Ver67
 
-**Intelligent DPR Audit. IRC & MoRTH Certified Logic.**
+DPR Analysis tool with all major IRC/MoRTH codes built in as guiding norms.
 
-AURIS is the V67 evolution of the DPR Analyzer, rebranded for use across all
-major road-constructing agencies of the country. It carries forward every
-audit feature of Ver66 and adds the AURIS visual identity (navy + gold,
-luxury wealth-management aesthetic inspired by auriswealth.co).
+**Border Roads Organisation** — Developed by Col Ashish Bhardwaj.
 
-## What carries over from Ver66 (unchanged)
+Ver67 carries the full Ver66 audit engine forward, plus:
 
-All analytical/technical behaviour is preserved verbatim from Ver66:
+1. **Ninth IRC reference loaded** — `IRC:SP:55-2014` (Guidelines on Traffic
+   Management in Work Zones, First Revision) now preloads alongside the
+   existing IRC:37, IRC:52, IRC:73, IRC:SP:13, IRC:SP:19, IRC:SP:42,
+   IRC:SP:48 and MoRTH 5th Revision. The picker entry for IRC:SP:55 is
+   now enabled and the title is corrected to match the actual document
+   ("Traffic Management in Work Zones" — Road Safety Audit is the
+   separate IRC:SP:88, which remains out of scope).
+2. **Tightened analyze prompt** — two systematic citation errors found
+   in the Sikkim Ver66 audit are now prevented:
+   - **Document-attribution rules** explicitly tell the model that
+     hill-road geometric-design clauses (hairpin radius, curve radii,
+     superelevation, transition curves, gradients) live in IRC:52, not
+     IRC:SP:48. IRC:SP:48 covers slope stability, retaining walls,
+     hill-road pavement, catch water drains, earthwork.
+   - **Loaded-references-only rule strengthened** — if the model
+     recognises a code from training (e.g. IRC:6, IRC:78, IRC:112,
+     IRC:SP:84, IRC:SP:88, BR Regulations, IS:1893) but it has no
+     `[IRC REFERENCE: filename]` block above, the finding MUST fall
+     back to General Observation. Citing an un-loaded code is treated
+     as a fabrication.
+   - A pre-emit mental-verification step is now mandated.
+3. **JSON report export** — new "📥 JSON (verifier)" button on the
+   results screen downloads the parsed analysis result as JSON.
+4. **Standalone citation verifier** (`verify-report.html`) — drop in
+   the exported JSON (or paste PDF/Word text) to cross-check every
+   cited clause against the nine loaded MD files. Output is a
+   colour-coded table — `VERIFIED` / `MISATTRIBUTED` /
+   `NO REF LOADED` / `NOT FOUND` / `GENERAL OBS`.
 
-1. **Clause-level citations** — every deficiency reports the source document,
-   exact clause number, a one-line summary of what the clause requires, and
-   how the DPR fails it.
-2. **Three output formats** — PDF (via print-to-PDF), editable Word (.doc),
-   and a clean on-screen Print view, all now with the AURIS header/footer.
-3. **Guideline load status** — green banner on successful load, red blocking
-   alert if any guideline fails; report footer lists the guideline versions
-   referenced.
-4. **Report header inputs** — Project Name, Road Number / Project Code,
-   Reviewing Officer Name & Designation, and Date of Review (auto-filled
-   with today). Populated into every report.
-5. **Unsupported codes greyed out** — codes without a backing MD reference
-   are disabled in the picker with a tooltip.
-6. **Deeper analysis** — findings split into **Design Compliance** and
-   **Documentation Compliance**, each with a **Recommended Corrective
-   Action** and a **Severity Justification** tied to the cited clause.
-7. **Two-host audio overview ("podcast")** — generated via the same
-   Gemini TTS pipeline as Ver66.
-8. **IRC reference loading** — same eight markdown reference files
-   (`IRC:37`, `IRC:52`, `IRC:73`, `IRC:SP:13`, `IRC:SP:19`, `IRC:SP:42`,
-   `IRC:SP:48`, `MoRTH 5th Revision`) loaded from the repository on boot.
-9. **Analyze prompt and citation rules** — preserved verbatim. The
-   priority-codes block (IRC:SP:48, IRC:52, IRC:73, IRC:SP:13, IRC:SP:42)
-   continues to bias the audit toward hill/mountain road projects, as in
-   Ver66. Adjust in `Index.html` if your project type differs.
+What's unchanged from Ver66:
 
-## What changed (branding only)
+- All eight existing IRC / MoRTH MD references (now nine with SP:55)
+- The full clause-level citation rules (documentName / clauseNumber /
+  clauseSummary / failureReason) and the General Observation fallback
+- Design / Documentation compliance split, severity model, JSON output
+  schema
+- Report header inputs, PDF / Word / Print builders
+- Guideline preflight load with green/red banner, "Engine Ready" status
+- Two-host audio overview ("podcast") via Gemini TTS
+- Netlify Functions (`anthropic-proxy`, `gemini-tts`, `get-config`)
+- Visual theme: teal (#0D9488) + dark navy (#1a1a2e) on light grey,
+  Playfair Display + Outfit fonts — the Ver66 look. Login page, app
+  header and report template restored to the Ver66 layout, with the
+  BRO image removed (no on-screen logo). Drop a logo file into
+  `assets/` and reference it if you want one back.
 
-- **Name**: "DPR Analyzer Pro" → **"AURIS DPR Analyzer Pro"**
-- **Version**: Ver63/Ver66 → **Ver67**
-- **Colour palette**: teal `#0D9488` + dark navy `#1a1a2e` → AURIS navy
-  `#0A1F44` + gold `#C9A961` on a warm-ivory `#F8F5EE` page background
-- **Tagline**: *"Intelligent DPR Audit. IRC & MoRTH Certified Logic."*
-- **Logo**: Clean text-mark "AURIS" in Playfair Display
-  (drop in `assets/logo.png` and the `AurisMark` component for a real logo)
-- **Subtitles**: "Border Roads Organisation" → "AURIS" / tagline
-- **Access password**: `BRO@DPR2026` → **`AURIS@DPR2026`**
-- **Guideline base URL** points at this repo's `main` branch
-- **Placeholder examples** (project name, road number, designation) made
-  agency-agnostic (NH-style instead of GREF/Arunank-style)
+## Access
 
-## Deployment notes
+Site password: `BRO@DPR2026`.
 
-1. **Netlify functions** (`netlify/functions/`) carry over unchanged —
-   `anthropic-proxy.js`, `gemini-tts.js`, `get-config.js`. Set the same
-   environment variables on the Netlify site (`ANTHROPIC_API_KEY`,
-   `GEMINI_API_KEY`).
-2. **Guideline loading** uses
-   `https://raw.githubusercontent.com/ashishbhardwajcwe-cell/AURIS_DPR_v67/main/guidelines/`.
-   This only resolves once this branch is merged to `main`. Until then,
-   either temporarily point `GITHUB_BASE_URL` (in `Index.html`) at the
-   Ver66 repo, or merge first.
-3. **Logo**: the AURIS text-mark renders without an image. To use a real
-   logo, drop an SVG/PNG into `assets/` and replace `AurisMark` calls with
-   an `<img>` of the same height.
+## Deployment
+
+Netlify auto-detects everything. Build command is empty, publish
+directory is repo root, functions directory is `netlify/functions`.
+Set `ANTHROPIC_API_KEY` and `GEMINI_API_KEY` environment variables
+on the Netlify site.

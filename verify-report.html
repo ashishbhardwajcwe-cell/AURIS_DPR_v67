@@ -3,36 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AURIS Citation Verifier — Ver67</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%230A1F44'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-family='Playfair Display, Georgia, serif' font-size='38' font-weight='800' fill='%23C9A961'%3EA%3C/text%3E%3C/svg%3E">
+  <title>DPR Analyzer Pro — Citation Verifier Ver67</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%231a1a2e'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-family='Playfair Display, Georgia, serif' font-size='34' font-weight='800' fill='%230D9488'%3ED%3C/text%3E%3C/svg%3E">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Outfit',sans-serif;background:#F8F5EE;min-height:100vh;color:#0A1F44;padding:24px}
+    body{font-family:'Outfit',sans-serif;background:#F5F7FA;min-height:100vh;color:#1a1a2e;padding:24px}
     .wrap{max-width:1100px;margin:0 auto}
-    .hdr{background:linear-gradient(135deg,#0A1F44 0%,#142B5C 50%,#1E3A6E 100%);color:#fff;padding:20px 28px;border-radius:14px;display:flex;align-items:center;gap:16px;border-bottom:3px solid #C9A961;margin-bottom:18px}
-    .mark{display:inline-flex;align-items:center;justify-content:center;height:50px;padding:0 17px;border-radius:8px;border:1.5px solid #C9A961;font-family:'Playfair Display',serif;font-weight:800;font-size:21px;letter-spacing:0.3em;color:#C9A961;line-height:1;flex-shrink:0}
+    .hdr{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);color:#fff;padding:20px 28px;border-radius:14px;display:flex;align-items:center;gap:16px;border-bottom:3px solid #0D9488;margin-bottom:18px}
+    .mark{display:inline-flex;align-items:center;justify-content:center;height:50px;padding:0 17px;border-radius:8px;border:1.5px solid #0D9488;font-family:'Playfair Display',serif;font-weight:800;font-size:21px;letter-spacing:0.3em;color:#0D9488;line-height:1;flex-shrink:0}
     .mark span{padding-left:0.3em}
     h1{font-family:'Playfair Display',serif;font-size:22px;font-weight:800;margin:0}
-    h1 .v{font-size:12px;color:#C9A961;font-weight:700;letter-spacing:1px;margin-left:8px}
-    .sub{font-size:11px;color:rgba(201,169,97,0.85);letter-spacing:.3px;margin-top:2px}
+    h1 .v{font-size:12px;color:#0D9488;font-weight:700;letter-spacing:1px;margin-left:8px}
+    .sub{font-size:11px;color:rgba(13,148,136,0.85);letter-spacing:.3px;margin-top:2px}
     .card{background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:18px 22px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,0.04)}
-    .card h2{font-size:15px;font-weight:700;color:#0A1F44;margin-bottom:6px}
+    .card h2{font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:6px}
     .card p{font-size:13px;color:#475569;line-height:1.6}
     .drop{border:2px dashed #CBD5E1;border-radius:12px;padding:28px;text-align:center;cursor:pointer;background:#FAFBFC;margin-top:10px;transition:border-color .15s,background .15s}
-    .drop.over{border-color:#C9A961;background:#FDF8EC}
-    .drop strong{color:#C9A961}
+    .drop.over{border-color:#0D9488;background:#F0FDFA}
+    .drop strong{color:#0D9488}
     textarea{width:100%;min-height:140px;padding:12px 14px;border-radius:10px;border:1.5px solid #E2E8F0;font-family:'Outfit',sans-serif;font-size:13px;background:#FAFBFC;resize:vertical;outline:none;margin-top:10px}
-    textarea:focus{border-color:#C9A961;box-shadow:0 0 0 3px rgba(201,169,97,.1)}
-    .btn{padding:11px 22px;border-radius:10px;border:none;background:linear-gradient(135deg,#C9A961,#A88B47);color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif}
+    textarea:focus{border-color:#0D9488;box-shadow:0 0 0 3px rgba(13,148,136,.1)}
+    .btn{padding:11px 22px;border-radius:10px;border:none;background:linear-gradient(135deg,#0D9488,#0F766E);color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif}
     .btn:disabled{background:#CBD5E1;cursor:not-allowed}
-    .btn.sec{background:#fff;color:#0A1F44;border:1.5px solid #E2E8F0}
+    .btn.sec{background:#fff;color:#1a1a2e;border:1.5px solid #E2E8F0}
     .gl-strip{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
     .gl-pill{font-size:11px;font-family:monospace;background:#fff;border:1px solid #CBD5E1;border-radius:4px;padding:2px 8px;color:#0F172A;font-weight:600}
     .gl-pill.ok{background:#F0FDF4;border-color:#BBF7D0;color:#15803D}
     .gl-pill.fail{background:#FEF2F2;border-color:#FECACA;color:#991B1B}
     table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
-    th{background:#0A1F44;color:#fff;padding:9px 8px;text-align:left;font-weight:700;font-size:11px;letter-spacing:.3px;text-transform:uppercase}
+    th{background:#1a1a2e;color:#fff;padding:9px 8px;text-align:left;font-weight:700;font-size:11px;letter-spacing:.3px;text-transform:uppercase}
     td{padding:9px 8px;border-bottom:1px solid #E2E8F0;vertical-align:top;color:#1E293B;line-height:1.45}
     tr.row-ok td{background:#F0FDF4}
     tr.row-warn td{background:#FFFBEB}
@@ -56,27 +56,26 @@
 <div class="wrap">
 
   <div class="hdr">
-    <div class="mark"><span>AURIS</span></div>
     <div style="flex:1">
-      <h1>Citation Verifier <span class="v">Ver67</span></h1>
-      <div class="sub">Independently cross-checks every clause cited in an AURIS report against the loaded IRC / MoRTH reference files.</div>
+      <h1>DPR Analyzer Pro — Citation Verifier <span class="v">Ver67</span></h1>
+      <div class="sub">Border Roads Organisation &nbsp;·&nbsp; Independently cross-checks every clause cited in a DPR Analyzer Pro report against the loaded IRC / MoRTH reference files.</div>
     </div>
   </div>
 
   <div class="card">
     <h2>1. Reference files loaded for verification</h2>
-    <p>Each clause citation in your report is checked against these eight markdown reference files. If a citation names a document not in this list, it is flagged as <strong>NO REFERENCE LOADED</strong> (the AURIS prompt explicitly forbids this — it is a hallucination signal).</p>
+    <p>Each clause citation in your report is checked against these nine markdown reference files. If a citation names a document not in this list, it is flagged as <strong>NO REFERENCE LOADED</strong> (the analyzer prompt explicitly forbids this — it is a hallucination signal).</p>
     <div id="glStrip" class="gl-strip"><span class="muted">Loading…</span></div>
   </div>
 
   <div class="card">
     <h2>2. Drop the report JSON, or paste your report findings as text</h2>
-    <p>The cleanest input is the JSON file exported from the AURIS app — use the new <em>JSON (verifier)</em> button on the results screen. You can also paste text from the PDF / Word / Print view: the verifier will regex-extract any <code>DocCode  ClauseRef</code> pair it finds.</p>
+    <p>The cleanest input is the JSON file exported from the DPR Analyzer Pro app — use the <em>JSON (verifier)</em> button on the results screen. You can also paste text from the PDF / Word / Print view: the verifier will regex-extract any <code>DocCode  ClauseRef</code> pair it finds.</p>
     <div id="drop" class="drop">
       <div style="font-size:34px;margin-bottom:8px;opacity:.5">📥</div>
       <div><strong>Drop the report JSON here</strong> &nbsp;·&nbsp; or click to browse</div>
       <input id="file" type="file" accept=".json,application/json" style="display:none">
-      <div class="muted" style="margin-top:10px">Accepts the exact JSON produced by the AURIS analyzer</div>
+      <div class="muted" style="margin-top:10px">Accepts the exact JSON produced by the DPR Analyzer Pro analyzer</div>
     </div>
     <textarea id="pasted" placeholder="…or paste report text (PDF/Word/Print view content). The verifier will look for cited document names and clause numbers automatically."></textarea>
     <div style="display:flex;gap:10px;margin-top:12px;align-items:center;flex-wrap:wrap">
@@ -109,7 +108,7 @@
     </p>
   </div>
 
-  <div style="text-align:center;font-size:11px;color:#94A3B8;padding:14px 0">Developed by Col Ashish Bhardwaj &nbsp;·&nbsp; AURIS DPR Analyzer Pro Ver67</div>
+  <div style="text-align:center;font-size:11px;color:#94A3B8;padding:14px 0">Developed by Col Ashish Bhardwaj &nbsp;|&nbsp; Border Roads Organisation &nbsp;|&nbsp; DPR Analyzer Pro Ver67</div>
 </div>
 
 <script>
@@ -122,6 +121,7 @@ var IRC_REF_FILES=[
   {file:"IRC_SP19_DPR_Analyzer_Extraction.md", label:"IRC:SP:19",  match:[/^IRC[\s:]?SP[\s:]?19/i]},
   {file:"IRC_SP42_2014_DPR_Analyzer_Extraction.md",label:"IRC:SP:42",match:[/^IRC[\s:]?SP[\s:]?42/i]},
   {file:"IRC_SP48_2023_DPR_Analyzer_Extraction.md",label:"IRC:SP:48",match:[/^IRC[\s:]?SP[\s:]?48/i]},
+  {file:"IRC_SP55_2014_DPR_Analyzer_Extraction.md",label:"IRC:SP:55",match:[/^IRC[\s:]?SP[\s:]?55/i]},
   {file:"MoRTH_DPR_Reference_Extract.md",      label:"MoRTH 5th Revision", match:[/morth/i]}
 ];
 /* Use relative path — works when deployed alongside Index.html on Netlify */
@@ -246,7 +246,7 @@ function extractFromText(txt){
 }
 
 function findingsFrom(input){
-  /* JSON path: AURIS report shape */
+  /* JSON path: DPR Analyzer Pro report shape */
   if(typeof input === "object" && input && Array.isArray(input.deficiencies)){
     return input.deficiencies.map(function(d){
       return {
@@ -327,7 +327,7 @@ function renderResult(res){
     {n:res.n.bad,l:"Not Found",c:"#DC2626"},
     {n:res.n.noref,l:"No Ref Loaded",c:"#7F1D1D"},
     {n:res.n.go,l:"General Obs",c:"#6B7280"},
-    {n:res.rows.length,l:"Total",c:"#0A1F44"}
+    {n:res.rows.length,l:"Total",c:"#1a1a2e"}
   ];
   stats.forEach(function(s){
     var d = document.createElement("div"); d.className="stat";
